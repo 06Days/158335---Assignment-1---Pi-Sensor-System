@@ -7,7 +7,7 @@ shopt -s nocasematch
 REPO_DIR="$(pwd)"
 VENV_DIR=".venv"
 REQUIREMENTS="requirements.txt"
-SERVER_SCRIPT="server.py"
+SERVER_SCRIPT="server"
 SLEEP_INTERVAL=30
 COMMIT_FILE=".last_commit"
 BRANCH="main"
@@ -59,7 +59,7 @@ while true; do
 
 
     LOG "Launching $SERVER_SCRIPT via uvicorn"
-    
+
     "$VENV_DIR/bin/uvicorn" "$SERVER_SCRIPT:app" \
         --host 0.0.0.0 --port 8000 &
     SERVER_PID=$!
