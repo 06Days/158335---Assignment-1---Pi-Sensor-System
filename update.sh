@@ -44,7 +44,7 @@ while true; do
     fi
 
     log "Starting $SERVER_SCRIPT ..."
-    "$VENV_DIR/bin/python" "$SERVER_SCRIPT" &
+    "uvicorn server:app --host 0.0.0.0 --port 8000" &
     SERVER_PID=$!
     log "Server started with PID $SERVER_PID."
 
