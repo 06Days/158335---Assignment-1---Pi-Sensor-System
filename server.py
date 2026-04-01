@@ -11,9 +11,29 @@ import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-
+from lps22hb import LPS22HB, read_sensor
 app = FastAPI()
+
+# Init sensor on start
+@app.on_event("startup")
+async def init_sensor():
+    global sensor
+    sensor = LPS22HB()
+    print("LPS22HB init")
+def _sync_read_sensor() -> dict:
+    pressure_hpa, temperature_c = read_sensor(sensor)
+    return{
+        "pressure_hpa":round(pressure_hpa,2),
+        "temperature_c": round(temperature, 2),
+        "timestamp": uuid.uuid1().time,
+    }
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
     return FileResponse("./static/index.html")
+
+
+@app.get("/sensor", response_class=JSONResponse)
+async def get_sensor_data():
+    data = _sync_read_sensor()
+    return data

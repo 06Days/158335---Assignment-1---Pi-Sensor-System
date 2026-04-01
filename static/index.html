@@ -9,3 +9,17 @@
 
   </body>
 </html>
+<script type="text/javascript">
+    async function test_data(){
+      try{
+        const res = await fetch('/sensor');
+        const data = await res.json();
+        document.getElementById('pressure').textContent = data.pressure_hpa.toFixed(2);
+        document.getElementById('temperature').textContent = data.temperature_c.toFixed(2);
+      } catch (e){
+        console.error(e);
+      }
+      setTimeout(poll,1000);
+    }
+    window.onload=test_data;
+</script>
