@@ -6,4 +6,3 @@ pathlib
 uuid
 aiofiles
 uvicorn
-adafruit-circuitpython-lps22hb
