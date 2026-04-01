@@ -1,4 +1,4 @@
-smbus2
+smbus
 RPi.GPIO
 httpx
 fastapi
