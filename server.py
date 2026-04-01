@@ -1,6 +1,8 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
-# VERSION 0
-
+# VERSION 1
+import asyncio
+import sqlite
+from typing import List, Dict
 import os
 import json
 import secrets
@@ -18,7 +20,7 @@ app = FastAPI()
 @app.on_event("startup")
 async def init_sensor():
     global sensor
-    sensor = LPS22HB()
+    app.state.sensor = LPS22HB()
     print("LPS22HB init")
 def _sync_read_sensor() -> dict:
     pressure_hpa, temperature_c = read_sensor(sensor)
