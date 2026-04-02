@@ -58,6 +58,7 @@
 
           tempchart.data.labels=chronologicalData.map(row => new Date(row.DateTime));
           tempchart.data.datasets[0].data = chronologicalData.map(row => row.Temperature);
+          console.log("Chart Data:", tempchart.data.datasets[0].data);
           tempchart.update();
         }
       } catch (exception){
