@@ -6,4 +6,8 @@ pathlib
 uuid
 aiofiles
 uvicorn
+<<<<<<< Updated upstream
 adafruit-circuitpython-lps22hb
+=======
+starlette
+>>>>>>> Stashed changes
