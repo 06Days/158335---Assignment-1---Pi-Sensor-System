@@ -53,9 +53,9 @@
 
           document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
           document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
-
+          console.log("rds:", row.DateTime);
           const tempChartData = data.map(row => ({
-            console.log("rds:", row.DateTime);
+
             x: new Date(row.DateTime),
             y: row.Temperature
           })).reverse();
