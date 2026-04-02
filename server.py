@@ -51,8 +51,9 @@ def get_records(limit: int = 100):
     ) from exception
 def _sync_read_sensor() -> dict:
     pressure_hpa, temperature_c = read_sensor(app.state.sensor)
+    now=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     return{
-        "DateTime": datetime.datetime.utcnow().isoformat(),
+        "DateTime": now,
         "Pressure":round(pressure_hpa,2),
         "Temperature": round(temperature_c, 2),
         "DateTime": uuid.uuid1().time,
