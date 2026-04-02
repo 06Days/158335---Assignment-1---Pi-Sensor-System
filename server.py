@@ -15,7 +15,7 @@ from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
-from database import build_database
+from database import build_database, DB_SCHEME
 
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
