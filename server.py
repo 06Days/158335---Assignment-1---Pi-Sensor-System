@@ -9,13 +9,14 @@ import json
 import secrets
 import httpx
 import uuid
+import datetime
 from pathlib import Path
 import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
-from database import build_database
+from database import build_database, DB_SCHEME, log_sensor_data
 
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
@@ -30,32 +31,46 @@ def _ensure_database() -> None:
         logging.error(f"failed to initialize database {exception}")
         raise RuntimeError("Pi sensor system cant operate without a database!") from exception
 
+def _sync_read_sensor() -> dict:
+    pressure_hpa, temperature_c = read_sensor(app.state.sensor)
+    return{
+        "DateTime": datetime.utcnow().isoformat(),
+        "pressure_hpa":round(pressure_hpa,2),
+        "temperature_c": round(temperature_c, 2),
+        "timestamp": uuid.uuid1().time,
+    }
+
+async def backend_sensor_loop() -> None:
+    while True:
+        try:
+            data = _sync_read_sensor()
+            log_sensor_data(DB_FILE, data)
+            logging.info("Sensor data has been logged")
+        except Exception as exception:
+            logging.error(f"Could not log sensor data {exception}")
+        # 10 Second - placeholder, will become a setting
+        await asyncio.sleep(10)
+
 # Init sensor on start
 @app.on_event("startup")
 async def startup():
     try:
         app.state.sensor = LPS22HB()
-        print("LPS22HB init")
+        logging.info("LPS22HB init")
     except Exception as exception:
         logging.error(f"Sensor init failed: {exception}")
 
     # now for the database
     try:
         _ensure_database()
+        logging.info("Database init")
     except Exception as exception:
         raise RuntimeError(f"Could not initialize database {exception}") from exception
     # tying the app state to the database ensures it can be accessed later.
     app.state.db_path = DB_FILE
     # I use asyncio, I don't need threading for a task like this.
-    # asyncio.create_task(backend_sensor_loop())
-def _sync_read_sensor() -> dict:
-    pressure_hpa, temperature_c = read_sensor(app.state.sensor)
-    return{
-        "pressure_hpa":round(pressure_hpa,2),
-        "temperature_c": round(temperature_c, 2),
-        "timestamp": uuid.uuid1().time,
-    }
-
+    asyncio.create_task(backend_sensor_loop())
+    logging.info("Started loggin background sensor data")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index():
