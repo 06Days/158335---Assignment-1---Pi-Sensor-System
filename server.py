@@ -34,7 +34,7 @@ def _ensure_database() -> None:
 def _sync_read_sensor() -> dict:
     pressure_hpa, temperature_c = read_sensor(app.state.sensor)
     return{
-        "DateTime": datetime.utcnow().isoformat(),
+        "DateTime": datetime.datetime.utcnow().isoformat(),
         "pressure_hpa":round(pressure_hpa,2),
         "temperature_c": round(temperature_c, 2),
         "timestamp": uuid.uuid1().time,
