@@ -41,11 +41,11 @@
   // Keeps the chart within the last minute (temporary)
   function pruneChart(){
     const now = Date.now();
-    chart.data.labels = chart.data.labels.filter(t=> now - t <=60000);
-    chart.data.datasets.forEach(ds => {
-      ds.data = ds.data.filter((_,i)=> now - chart.data.labels[i] <= 60000);
+    tempchart.data.labels = chart.data.labels.filter(t=> now - t <=60000);
+    tempchart.data.datasets.forEach(ds => {
+      ds.data = ds.data.filter((_,i)=> now - tempchart.data.labels[i] <= 60000);
     });
-    chart.update();
+    tempchart.update();
   }
   // a feed from the backend to update the chart as data is brought!
   const eventSource = new EventSource('sensor/stream');
@@ -53,8 +53,8 @@
     const message = JSON.parse(e.event);
     const timestamp = new Date(msg.timestamp * 1000);
 
-    chart.data.labels.push(timestamp);
-    chart.data.datasets[0].data.push(message.temperature_c);
+    tempchart.data.labels.push(timestamp);
+    tempchart.data.datasets[0].data.push(message.temperature_c);
 
     pruneChart();
   };
