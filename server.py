@@ -96,6 +96,7 @@ async def read_index():
 async def get_sensor_history(limit: int = 100):
     try:
         rows = fetch_history(app.state.db_path, limit=limit)
+        print(f"Dbg:{len(rows)} records in DB")  
         return JSONResponse(rows)
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
