@@ -56,7 +56,6 @@ def _sync_read_sensor() -> dict:
         "DateTime": now,
         "Pressure":round(pressure_hpa,2),
         "Temperature": round(temperature_c, 2),
-        "DateTime": uuid.uuid1().time,
     }
 
 async def backend_sensor_loop() -> None:
