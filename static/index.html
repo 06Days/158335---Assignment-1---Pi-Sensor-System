@@ -55,10 +55,11 @@
           document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
 
           const tempChartData = data.map(row => ({
+            console.log("rds:", row.DateTime);
             x: new Date(row.DateTime),
             y: row.Temperature
           })).reverse();
-          
+
           tempchart.data.datasets[0].data = tempChartData
           console.log(tempchart.data.labels);
           console.log("Chart Data:", tempchart.data.datasets[0].data);
