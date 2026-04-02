@@ -3,7 +3,7 @@
 import asyncio
 import sqlite3
 import logging
-from typing import List, Dict
+from typing import List, Dict, AsyncGenerator
 import os
 import json
 import secrets
@@ -24,7 +24,7 @@ DB_FILE = DB_DIRECTORY / "db.db"
 
 app = FastAPI()
 
-async def sensor_streamer() -> async_generator[str, None]:
+async def sensor_streamer():
     while True:
         data = _sync_read_sensor()
         yield f"data: {json.dumps(data)}\n\n"
