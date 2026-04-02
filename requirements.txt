@@ -6,3 +6,4 @@ pathlib
 uuid
 aiofiles
 uvicorn
+starlette

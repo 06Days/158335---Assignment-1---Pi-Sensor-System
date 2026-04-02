@@ -17,11 +17,18 @@ from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
 from database import build_database, DB_SCHEME, log_sensor_data
+from starlette.responses import StreamingResponse
 
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 
 app = FastAPI()
+
+async def sensor_streamer() -> async_generator[str, None]:
+    while True:
+        data = _sync_read_sensor()
+        yield f"data: {json.dumps(data)}\n\n"
+        await asyncio.sleep(2)
 
 def _ensure_database() -> None:
     try:
@@ -79,6 +86,12 @@ async def read_index():
     except Exception as exception:
         logging.error(f"Could not serve ./static/index.html: {exception}")
         raise HTTPException(status_code=500, detail="Missing index file") from exception
+@app.get("/sensor/stream", response_class=StreamingResponse)
+async def stream_sensor_data():
+    return StreamingResponse(
+        sensor_streamer(),
+        media_type="text/event-stream"
+    )
 
 @app.get("/sensor", response_class=JSONResponse)
 async def get_sensor_data():
