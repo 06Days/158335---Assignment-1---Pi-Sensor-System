@@ -13,6 +13,8 @@
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="text/javascript">
+
+
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
   const tempchart = new Chart(tempcanvas, {
     type: 'line',
@@ -34,41 +36,31 @@
           time: {unit: 'second'},
           title: {display: true, text: 'Time'}
         },
-        y: {beginAtZero: true}
+        y: {beginAtZero: false}
       }
     }
   });
-  // Keeps the chart within the last minute (temporary)
-  function pruneChart(){
-    const now = Date.now();
-    tempchart.data.labels = chart.data.labels.filter(t=> now - t <=60000);
-    tempchart.data.datasets.forEach(ds => {
-      ds.data = ds.data.filter((_,i)=> now - tempchart.data.labels[i] <= 60000);
-    });
-    tempchart.update();
-  }
-  // a feed from the backend to update the chart as data is brought!
-  const eventSource = new EventSource('sensor/stream');
-  eventSource.onmessage = function (event){
-    const message = JSON.parse(eventSource.event);
-    const timestamp = new Date(msg.timestamp * 1000);
 
-    tempchart.data.labels.push(timestamp);
-    tempchart.data.datasets[0].data.push(message.temperature_c);
 
-    pruneChart();
-  };
-
-    async function test_data(){
+    async function loadHistory(){
       try{
-        const res = await fetch('/sensor');
-        const data = await res.json();
-        document.getElementById('pressure').textContent = data.pressure_hpa.toFixed(2);
-        document.getElementById('temperature').textContent = data.temperature_c.toFixed(2);
-      } catch (e){
-        console.error(e);
+        const result = await fetch("/sensor/history?limit=50");
+        const data = await result.json();
+
+        if(data.length>0){
+          const latest=data[0];
+          document.getElementById('pressure').textContent = latest.Pressure.toFixed(2);
+          document.getElementById('temperature').textContent = latest.Temperature.toFixed(2);
+
+          const chronologicalData = data.reverse();
+
+          tempchart.data.labels=chronologicalData.map(row = new Date(row.DateTime));
+          tempchart.data.datasets[0].data = chronologicalData.map(row => row.Temperature);
+          tempchart.update();
+        }
+      } catch (exception){
+        console.error("Could not load history! :",exception);
       }
-      setTimeout(1000);
     }
-    window.onload=test_data;
+    window.onload=loadHistory;
 </script>
