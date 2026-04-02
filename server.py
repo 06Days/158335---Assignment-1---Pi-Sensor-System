@@ -42,6 +42,7 @@ async def startup():
     # now for the database
     try:
         _ensure_database()
+        print("Database init")
     except Exception as exception:
         raise RuntimeError(f"Could not initialize database {exception}") from exception
     # tying the app state to the database ensures it can be accessed later.
