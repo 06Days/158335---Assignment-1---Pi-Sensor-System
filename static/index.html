@@ -49,15 +49,17 @@
         const result = await fetch("/sensor/history?limit=50");
         const data = await result.json();
 
-        if(data.length>0){
-          const latest=data[0];
-          document.getElementById('pressure').textContent = latest.Pressure.toFixed(2);
-          document.getElementById('temperature').textContent = latest.Temperature.toFixed(2);
+        if(data && data.length>0){
 
-          const chronologicalData = data.reverse();
+          document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
+          document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
 
-          tempchart.data.labels=chronologicalData.map(row => new Date(row.DateTime));
-          tempchart.data.datasets[0].data = chronologicalData.map(row => row.Temperature);
+          const tempChartData = data.map(row => ({
+            x: new Date(row.DateTime),
+            y: row.Temperature
+          })).reverse();
+          
+          tempchart.data.datasets[0].data = tempChartData
           console.log(tempchart.data.labels);
           console.log("Chart Data:", tempchart.data.datasets[0].data);
           tempchart.update();
