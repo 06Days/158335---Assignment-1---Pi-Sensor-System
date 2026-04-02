@@ -13,7 +13,7 @@ import datetime
 from pathlib import Path
 import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
 from database import build_database, DB_SCHEME, log_sensor_data
