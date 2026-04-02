@@ -56,7 +56,7 @@
 
           const chronologicalData = data.reverse();
 
-          tempchart.data.labels=chronologicalData.map(row = new Date(row.DateTime));
+          tempchart.data.labels=chronologicalData.map(row => new Date(row.DateTime));
           tempchart.data.datasets[0].data = chronologicalData.map(row => row.Temperature);
           tempchart.update();
         }
