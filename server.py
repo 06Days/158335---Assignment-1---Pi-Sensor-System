@@ -15,64 +15,37 @@ from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
+from database import build_database
 
-# V1 Of my DB schema for the project
-DB_SCHEME = """BEGIN TRANSACTION;
-CREATE TABLE IF NOT EXISTS "EventTypes" (
-	"TypeID"	INTEGER NOT NULL,
-	"Name"	TEXT,
-	"Description"	TEXT,
-	PRIMARY KEY("TypeID" AUTOINCREMENT)
-);
-CREATE TABLE IF NOT EXISTS "SensorEvents" (
-	"EventID"	INTEGER NOT NULL,
-	"TypeID"	INTEGER NOT NULL,
-	"RecordID"	INTEGER NOT NULL,
-	PRIMARY KEY("EventID" AUTOINCREMENT),
-	FOREIGN KEY("RecordID") REFERENCES "SensorRecords"("RecordID"),
-	FOREIGN KEY("TypeID") REFERENCES "EventTypes"("TypeID")
-);
-CREATE TABLE IF NOT EXISTS "SensorRecords" (
-	"RecordID"	INTEGER NOT NULL,
-	"DateTime"	DateTime NOT NULL,
-	"Temperature"	REAL NOT NULL,
-	"Pressure"	REAL NOT NULL,
-	"Humidity"	REAL NOT NULL,
-	PRIMARY KEY("RecordID" AUTOINCREMENT)
-);
-COMMIT;
-"""
+DB_DIRECTORY = Path(__file__).parent / "data"
+DB_FILE = DB_DIRECTORY / "db.db"
 
-def build_database(db_path: Path, schema: str) -> None:
-    try:
-        db_path.parent.mkdir(parents=True, exist_ok=True)
-        connect = sqlite3.connect(str(db_path))
-        try:
-            # Because SQL is a query language, you can pass it a string to execute!
-            connect.executescript(schema)
-            connect.commit()
-            logging.info(f"Created database successfully at {db_path.resolve()}")
-        except sqlite3.DatabaseError as db_error:
-            connect.rollback()
-            logging.error(f"Failed to apply schema on database: {db_error}")
-            raise
-        finally:
-            connect.close()
-    except Exception as err:
-        logging.error(f"Database creation failed '{db_path}: {err}'")
-        raise
 app = FastAPI()
 
+def _ensure_database() -> None:
+    try:
+        build_database(DB_FILE, DB_SCHEME)
+        logging.info("Database init")
+    except Exception as exception:
+        logging.error(f"failed to initialize database {exception}")
+        raise RuntimeError("Pi sensor system cant operate without a database!") from exception
 
 # Init sensor on start
 @app.on_event("startup")
-async def init_sensor():
+async def startup():
     try:
         app.state.sensor = LPS22HB()
         print("LPS22HB init")
     except Exception as exception:
         logging.error(f"Sensor init failed: {exception}")
 
+    # now for the database
+    try:
+        _ensure_database()
+    except Exception as exception:
+        raise RuntimeError(f"Could not initialize database {exception}") from exception
+    # tying the app state to the database ensures it can be accessed later.
+    app.state.db_path = DB_FILE
     # I use asyncio, I don't need threading for a task like this.
     # asyncio.create_task(backend_sensor_loop())
 def _sync_read_sensor() -> dict:
@@ -90,9 +63,22 @@ async def read_index():
         return FileResponse("./static/index.html")
     except Exception as exception:
         logging.error(f"Could not serve ./static/index.html: {exception}")
-
+        raise HTTPException(status_code=500, detail="Missing index file") from exception
 
 @app.get("/sensor", response_class=JSONResponse)
 async def get_sensor_data():
-    data = _sync_read_sensor()
-    return data
+    try:
+        data = _sync_read_sensor()
+        return data
+    except Exception as exception:
+        logging.error(f"Could not read the sensor data {exception}")
+        raise HTTPException(status_code=500, detail="Failed to read sensor data") from exception
+@app.post("/sensor/log", status_code=status.HTTP_201_CREATED)
+async def log_latest_sensor_data():
+    try:
+        data = _sync_read_sensor()
+        log_sensor_data(app.state.db_path, data)
+        return {"detail":"Logged sensor data"}
+    except Exception as exception:
+        logging.error(f"Failed to log sensor data {exception}")
+        raise HTTPException(status_code=500,detail="failed to store sensor data") from exc
