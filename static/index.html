@@ -50,7 +50,7 @@
   // a feed from the backend to update the chart as data is brought!
   const eventSource = new EventSource('sensor/stream');
   eventSource.onmessage = function (event){
-    const message = JSON.parse(e.event);
+    const message = JSON.parse(eventSource.event);
     const timestamp = new Date(msg.timestamp * 1000);
 
     tempchart.data.labels.push(timestamp);
@@ -68,7 +68,7 @@
       } catch (e){
         console.error(e);
       }
-      setTimeout(poll,1000);
+      setTimeout(1000);
     }
     window.onload=test_data;
 </script>

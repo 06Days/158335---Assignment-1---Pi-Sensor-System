@@ -53,6 +53,20 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
     except Exception as exception:
         logging.error(f"failed to add sensor data to database {exception}")
 
+def fetch_history(db_path: Path, limit: int=100)->List[Dict[str,Any]]:
+    cursor=sqlite3.connect(str(db_path))
+    cursor.row_factory = sqlite3.Row
+    try:
+        cur=cursor.cursor()
+        cur.execute("""
+            SELECT Temperature, Pressure, DateTime FROM SensorRecords ORDER BY created_at DESC LIMIT ?""", (limit,),
+        )
+        rows=cur.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        cursor.close()
+
+
 def build_database(db_path: Path, schema: str) -> None:
     try:
         db_path.parent.mkdir(parents=True, exist_ok=True)

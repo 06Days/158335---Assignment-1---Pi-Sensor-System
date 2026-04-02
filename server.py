@@ -37,7 +37,16 @@ def _ensure_database() -> None:
     except Exception as exception:
         logging.error(f"failed to initialize database {exception}")
         raise RuntimeError("Pi sensor system cant operate without a database!") from exception
-
+def get_records(limit: int = 100):
+    try:
+        history = fetch_history(DB_FILE, limit)
+        return history
+    except Exception as exception:
+        logger.error(f"Failed to fetch records {exception}")
+    raise HTTPException(
+        status_code=500,
+        detail = "Could not fetch event history"
+    ) from exception
 def _sync_read_sensor() -> dict:
     pressure_hpa, temperature_c = read_sensor(app.state.sensor)
     return{
