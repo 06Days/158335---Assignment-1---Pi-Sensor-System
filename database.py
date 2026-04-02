@@ -45,7 +45,8 @@ COMMIT;
 def log_sensor_data(db_path: Path, record: dict) -> None:
     try:
         with sqlite3.connect(str(db_path)) as cursor:
-            cursor.execute("""INSERT INTO SensorRecords (DateTime, Temperature, Pressure, Humidity) VALUES (?,?,?,?)""",(record["timestamp"],record["temperature_c"],record["pressure_hpa"],0.0),)
+            cursor.execute("""INSERT INTO SensorRecords (DateTime, Temperature, Pressure, Humidity) VALUES (?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],0.0),)
+            cursor.commit();
             record_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
             # Implementation for 'events - highest / lowest records etc goes here'
 
