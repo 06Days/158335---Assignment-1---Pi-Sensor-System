@@ -81,5 +81,10 @@
         console.error("Could not load history! :",exception);
       }
     }
-    window.onload=loadHistory;
+    window.onload=()=>{
+
+      loadHistory();
+      setInterval(loadHistory,10000);
+
+    }
 </script>
