@@ -36,6 +36,15 @@
         x: {
           type: 'time',
           time: {unit: 'minute'},
+          ticks:{
+            // invasive but hopefully will work
+            callback: function(value, index, values){
+              return new Date(value).toLocaleTimeString([],{
+                hour:'2-digit',
+                minute:'2-digit'
+            });
+            }
+          },
           displayFormats:{
             minute: 'HH:mm'
           },
