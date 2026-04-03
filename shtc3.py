@@ -53,7 +53,7 @@ class SHTC3:
         self._write_command('SHTC3_NM_CD_READTH')
         time.sleep(0.02)
         buffer=self._bus.read_i2c_block_data(self._address,0,3)
-        self.sleep(0.02)
+        self.sleep()
         if self._check_crc(buffer,2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
             return (raw * 175.0/65536.0) -45.0
