@@ -52,7 +52,7 @@ class SHTC3:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READTH')
         time.sleep(0.02)
-        buffer=self._bus.read_ic2_block_data(self._address,0,3)
+        buffer=self._bus.read_i2c_block_data(self._address,0,3)
         self.sleep(0.02)
         if self._check_crc(buffer,2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
@@ -61,9 +61,9 @@ class SHTC3:
     # relative means 'at the position of the sensor'
     def read_humidity_relative(self) ->float:
         self.wakeup()
-        self._write_command('SHTC3_NM_CD_READTH')
+        self._write_command('SHTC3_NM_CD_READRH')
         time.sleep(0.02)
-        buffer=self._bus.read_ic2_block_data(self._address,0,3)
+        buffer=self._bus.read_i2c_block_data(self._address,0,3)
         self.sleep()
         if self._check_crc(buffer, 2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
