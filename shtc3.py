@@ -3,7 +3,7 @@ SHTC3 humidity / temperature I2C driver for python - meant for the Waveshare sen
 Sensor comes with an error of+-0.2 degrees celcius
 """
 import time
-import smbus
+import lgpio as sbc
 
 SHTC3_I2C_ADDRESS   = 0x70
 CRC_POLYNOMIAL      = 0x0131
@@ -19,7 +19,7 @@ REGISTERS = {
 class SHTC3:
     def __init__(self, address: int = SHTC3_I2C_ADDRESS, bus_id: int=1):
         self._address= address
-        self._bus = smbus.SMBus(bus_id)
+        self._fd = sbc.i2c_open(bus_id, address)
         self._reset()
     # Check the checksum coming from the incoming data this helps with error detection
     def _check_crc(self,data:list, length:int, checksum:int)-> bool:
@@ -35,7 +35,7 @@ class SHTC3:
         return crc==checksum
     def _write_command(self,cmd_key: str) ->None:
         cmd = REGISTERS[cmd_key]
-        self._bus.write_byte_data(self._address, cmd >>8, cmd & 0xFF)
+        sbc.i2c_write_byte_data(self._fd, cmd >> 8, cmd & 0xFF)
     def _reset(self) -> None:
         self._write_command('SHTC3_SOFTWARE_RES')
         time.sleep(0.05)
@@ -51,10 +51,10 @@ class SHTC3:
     def read_temperature_c(self)->float:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READTH')
-        time.sleep(0.05)
-        buffer=self._bus.read_i2c_block_data(self._address,0,3)
+        time.sleep(0.1)
+        count, buffer = sbc.i2c_read_device(self._fd, 3)
         self.sleep()
-        if self._check_crc(buffer,2,buffer[2]):
+        if count==3 and self._check_crc(buffer,2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
             return (raw * 175.0/65536.0) -45.0
         return 0.0
@@ -63,8 +63,8 @@ class SHTC3:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READRH')
         time.sleep(0.05)
-        buffer=self._bus.read_i2c_block_data(self._address,0,3)
-        self.sleep()
+        buffer=self._bus.read_i2c_block_data(self._fd,0,3)
+        # self.sleep()
         if self._check_crc(buffer, 2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
             return 100.0 *raw/65536.0
