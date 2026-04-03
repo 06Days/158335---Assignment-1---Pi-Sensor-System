@@ -31,13 +31,13 @@
       ]
     },
     options: {
-      animation: false,
+      animation: true,
       scales: {
         x: {
           type: 'time',
           time: {unit: 'minute'},
           displayFormats:{
-            minute: 'PPp'
+            minute: 'HH:mm'
           },
           title: {display: true, text: 'Time'}
         },
@@ -63,7 +63,7 @@
             y: row.Temperature
           })).filter(p =>!isNaN(p.x.getTime()));
 
-          tempchart.data.datasets[0].data = tempChartData
+          tempchart.data.datasets[0].data = tempChartData.reverse();
           console.log(tempchart.data.labels);
           console.log("Chart Data:", tempchart.data.datasets[0].data);
           tempchart.update();
