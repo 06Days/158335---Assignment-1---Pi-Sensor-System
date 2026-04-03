@@ -69,10 +69,10 @@ class SHTC3:
             raw=(buffer[0]<<8) | buffer[1]
             return 100.0 *raw/65536.0
         return 0.0
-    def read_sensor(sht: SHTC3) -> tuple [float,float]:
-        temperature = sht.read_temperature_c()
-        humidity = sht.read_humidity_relative()
-        return temperature, humidity
+def read_sensor(sht: SHTC3) -> tuple [float,float]:
+    temperature = sht.read_temperature_c()
+    humidity = sht.read_humidity_relative()
+    return temperature, humidity
 
 if __name__ == "__main__":
     sht = SHTC3()
