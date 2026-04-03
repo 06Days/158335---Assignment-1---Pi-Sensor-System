@@ -63,7 +63,7 @@ class SHTC3:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READRH')
         time.sleep(0.05)
-        count,buffer=sbc.ic2_read_device(self._fd,3)
+        count,buffer=sbc.i2c_read_device(self._fd,3)
         # gtself.sleep()
         if count==3 and self._check_crc(buffer, 2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
