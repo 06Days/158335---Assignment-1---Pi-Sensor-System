@@ -61,7 +61,7 @@
 
             x: new Date(row.DateTime),
             y: row.Temperature
-          })).reverse();
+          })).filter(p =>!isNaN(p.x.getTime()));
 
           tempchart.data.datasets[0].data = tempChartData
           console.log(tempchart.data.labels);
