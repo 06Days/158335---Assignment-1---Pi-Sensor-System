@@ -38,20 +38,20 @@ class SHTC3:
         self._bus.write_byte_data(self._address, cmd >>8, cmd & 0xFF)
     def _reset(self) -> None:
         self._write_command('SHTC3_SOFTWARE_RES')
-        time.sleep(0.01)
+        time.sleep(0.05)
     def wakeup(self) ->None:
         try:
             self._write_command('SHTC3_WAKEUP')
-            time.sleep(0.01)
+            time.sleep(0.05)
         except OSError:
             pass
     def sleep(self)->None:
         self._write_command('SHTC3_SLEEP')
-        time.sleep(0.01)
+        time.sleep(0.05)
     def read_temperature_c(self)->float:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READTH')
-        time.sleep(0.02)
+        time.sleep(0.05)
         buffer=self._bus.read_i2c_block_data(self._address,0,3)
         self.sleep()
         if self._check_crc(buffer,2,buffer[2]):
@@ -62,7 +62,7 @@ class SHTC3:
     def read_humidity_relative(self) ->float:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READRH')
-        time.sleep(0.02)
+        time.sleep(0.05)
         buffer=self._bus.read_i2c_block_data(self._address,0,3)
         self.sleep()
         if self._check_crc(buffer, 2,buffer[2]):
