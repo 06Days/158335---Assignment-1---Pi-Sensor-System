@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 LPS22HB pressure / temperature I2C driver for python - meant for the Waveshare sensor HAT (b/c) on a raspberry pi - written by Toby Cammock-Elliott
+Sensor comes with an error of+-1.5 degrees celcius
 """
 import time
 import smbus
