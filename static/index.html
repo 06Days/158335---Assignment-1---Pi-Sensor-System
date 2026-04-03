@@ -19,7 +19,7 @@
 
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
   const tempchart = new Chart(tempcanvas, {
-    type: 'line',
+    type: 'scatter',
     data: {
       labels: [],
       datasets: [{
@@ -35,7 +35,10 @@
       scales: {
         x: {
           type: 'time',
-          time: {unit: 'second'},
+          time: {unit: 'minute'},
+          displayFormats:{
+            minute: 'PPp'
+          },
           title: {display: true, text: 'Time'}
         },
         y: {beginAtZero: false}
