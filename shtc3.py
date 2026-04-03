@@ -52,10 +52,34 @@ class SHTC3:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READTH')
         time.sleep(0.02)
-        buffer=self._bus.read_ic2_block_date(self._address,0,3)
+        buffer=self._bus.read_ic2_block_data(self._address,0,3)
         self.sleep(0.02)
         if self._check_crc(buffer,2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
             return (raw * 175.0/65536.0) -45.0
         return 0.0
-    # def read_humidity_relative(self)
+    # relative means 'at the position of the sensor'
+    def read_humidity_relative(self) ->float:
+        self.wakeup()
+        self._write_command('SHTC3_NM_CD_READTH')
+        time.sleep(0.02)
+        buffer=self._bus.read_ic2_block_data(self._address,0,3)
+        self.sleep()
+        if self._check_crc(buffer, 2,buffer[2]):
+            raw=(buffer[0]<<8) | buffer[1]
+            return 100.0 *raw/65536.0
+        return 0.0
+    def read_sensor(sht: SHTC3) -> tuple [float,float]:
+        temperature = sht.read_temperature_c()
+        humidity = sht.read_humidity_relative()
+        return temperature, humidity
+
+if __name__ == "__main__":
+    sht = SHTC3()
+    try:
+        while True:
+            t, h = read_sensor(sht)
+            print(f"Temperature: {t:7.2f} °C | Humidity: {h:7.2f} %", end="\r")
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("\nExiting.")
