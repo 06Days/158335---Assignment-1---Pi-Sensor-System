@@ -63,9 +63,9 @@ class SHTC3:
         self.wakeup()
         self._write_command('SHTC3_NM_CD_READRH')
         time.sleep(0.05)
-        buffer=self._bus.read_i2c_block_data(self._fd,0,3)
-        # self.sleep()
-        if self._check_crc(buffer, 2,buffer[2]):
+        count,buffer=sbc.ic2_read_device(self._fd,3)
+        # gtself.sleep()
+        if count==3 and self._check_crc(buffer, 2,buffer[2]):
             raw=(buffer[0]<<8) | buffer[1]
             return 100.0 *raw/65536.0
         return 0.0
