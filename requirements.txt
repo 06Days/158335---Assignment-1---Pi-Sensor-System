@@ -7,3 +7,4 @@ uuid
 aiofiles
 uvicorn
 starlette
+lgpio
