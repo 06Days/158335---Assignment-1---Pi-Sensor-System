@@ -8,6 +8,7 @@
     <h1>This is a test!</h1>
     <p id="pressure"></p>
     <p id="temperature"></p>
+    <p id="humidity"></p>
     <canvas id="temperatureChart" width="800" height="400"></canvas>
   </body>
 </html>
@@ -61,12 +62,37 @@
 
     async function test_data(){
       try{
+<<<<<<< Updated upstream
         const res = await fetch('/sensor');
         const data = await res.json();
         document.getElementById('pressure').textContent = data.pressure_hpa.toFixed(2);
         document.getElementById('temperature').textContent = data.temperature_c.toFixed(2);
       } catch (e){
         console.error(e);
+=======
+        const result = await fetch("/sensor/history?limit=50");
+        const data = await result.json();
+
+        if(data && data.length>0){
+
+          document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
+          document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
+          document.getElementById('humidity').textContent = data[0].humidity.toFixed(2);
+          console.log("rds:", data[0].DateTime);
+          const tempChartData = data.map(row => ({
+
+            x: new Date(row.DateTime),
+            y: row.Temperature
+          })).filter(p =>!isNaN(p.x.getTime()));
+
+          tempchart.data.datasets[0].data = tempChartData.reverse();
+          console.log(tempchart.data.labels);
+          console.log("Chart Data:", tempchart.data.datasets[0].data);
+          tempchart.update();
+        }
+      } catch (exception){
+        console.error("Could not load history! :",exception);
+>>>>>>> Stashed changes
       }
       setTimeout(poll,1000);
     }
