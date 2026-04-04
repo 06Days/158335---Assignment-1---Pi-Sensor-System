@@ -1,5 +1,6 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
 # VERSION 1
+# LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
 import asyncio
 import sqlite3
 import logging
@@ -73,7 +74,7 @@ async def backend_sensor_loop() -> None:
         # 10 Second - placeholder, will become a setting
         await asyncio.sleep(10)
 
-# Init sensor on start
+# Init the LPS22HB And SHTC3 sensors on start
 @app.on_event("startup")
 async def startup():
     try:
