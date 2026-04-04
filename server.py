@@ -1,9 +1,10 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
 # VERSION 1
+# LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
 import asyncio
 import sqlite3
 import logging
-from typing import List, Dict
+from typing import List, Dict, AsyncGenerator
 import os
 import json
 import secrets
@@ -13,10 +14,11 @@ import datetime
 from pathlib import Path
 import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from lps22hb import LPS22HB, read_sensor
-from database import build_database, DB_SCHEME, log_sensor_data
+import lps22hb
+import shtc3
+from database import build_database, DB_SCHEME, log_sensor_data, fetch_history
 from starlette.responses import StreamingResponse
 
 DB_DIRECTORY = Path(__file__).parent / "data"
@@ -24,11 +26,13 @@ DB_FILE = DB_DIRECTORY / "db.db"
 
 app = FastAPI()
 
-async def sensor_streamer() -> async_generator[str, None]:
-    while True:
-        data = _sync_read_sensor()
-        yield f"data: {json.dumps(data)}\n\n"
-        await asyncio.sleep(2)
+logger = logging.getLogger(__name__)
+
+# Logging config, full Implementation
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 
 def _ensure_database() -> None:
     try:
@@ -37,17 +41,29 @@ def _ensure_database() -> None:
     except Exception as exception:
         logging.error(f"failed to initialize database {exception}")
         raise RuntimeError("Pi sensor system cant operate without a database!") from exception
-
+def get_records(limit: int = 100):
+    try:
+        history = fetch_history(DB_FILE, limit)
+        return history
+    except Exception as exception:
+        logger.error(f"Failed to fetch records {exception}")
+    raise HTTPException(
+        status_code=500,
+        detail = "Could not fetch event history"
+    ) from exception
 def _sync_read_sensor() -> dict:
-    pressure_hpa, temperature_c = read_sensor(app.state.sensor)
+    pressure_hpa, temperature_c_lps22hb = lps22hb.read_sensor(app.state.lps22hb)
+    humidity_percentage, temperature_c_shtc3 = shtc3.read_sensor(app.state.shtc3)
+    now=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     return{
-        "DateTime": datetime.utcnow().isoformat(),
-        "pressure_hpa":round(pressure_hpa,2),
-        "temperature_c": round(temperature_c, 2),
-        "timestamp": uuid.uuid1().time,
+        "DateTime": now,
+        "Pressure":round(pressure_hpa,2),
+        "Temperature": round(temperature_c_shtc3, 2),
+        "Humidity": round(humidity_percentage, 2)
     }
 
 async def backend_sensor_loop() -> None:
+    await asyncio.sleep(1)
     while True:
         try:
             data = _sync_read_sensor()
@@ -58,15 +74,16 @@ async def backend_sensor_loop() -> None:
         # 10 Second - placeholder, will become a setting
         await asyncio.sleep(10)
 
-# Init sensor on start
+# Init the LPS22HB And SHTC3 sensors on start
 @app.on_event("startup")
 async def startup():
     try:
-        app.state.sensor = LPS22HB()
+        app.state.lps22hb = lps22hb.LPS22HB()
         logging.info("LPS22HB init")
+        app.state.shtc3 = shtc3.SHTC3()
+        logging.info("SHTC3 init")
     except Exception as exception:
         logging.error(f"Sensor init failed: {exception}")
-
     # now for the database
     try:
         _ensure_database()
@@ -86,12 +103,16 @@ async def read_index():
     except Exception as exception:
         logging.error(f"Could not serve ./static/index.html: {exception}")
         raise HTTPException(status_code=500, detail="Missing index file") from exception
-@app.get("/sensor/stream", response_class=StreamingResponse)
-async def stream_sensor_data():
-    return StreamingResponse(
-        sensor_streamer(),
-        media_type="text/event-stream"
-    )
+
+@app.get("/sensor/history", response_class=JSONResponse)
+async def get_sensor_history(limit: int = 100):
+    try:
+        rows = fetch_history(app.state.db_path, limit=limit)
+        print(f"Dbg:{len(rows)} records in DB")
+        return JSONResponse(rows)
+    except Exception as exception:
+        logger.exception(f"Failed to fetch history: {exception}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve history") from exception
 
 @app.get("/sensor", response_class=JSONResponse)
 async def get_sensor_data():

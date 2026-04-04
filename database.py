@@ -45,13 +45,28 @@ COMMIT;
 def log_sensor_data(db_path: Path, record: dict) -> None:
     try:
         with sqlite3.connect(str(db_path)) as cursor:
-            cursor.execute("""INSERT INTO SensorRecords (DateTime, Temperature, Pressure, Humidity) VALUES (?,?,?,?)""",(record["timestamp"],record["temperature_c"],record["pressure_hpa"],0.0),)
+            cursor.execute("""INSERT INTO SensorRecords (DateTime, Temperature, Pressure, Humidity) VALUES (?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
+            cursor.commit();
             record_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
             # Implementation for 'events - highest / lowest records etc goes here'
 
 
     except Exception as exception:
         logging.error(f"failed to add sensor data to database {exception}")
+
+def fetch_history(db_path: Path, limit: int=100)->List[Dict]:
+    cursor=sqlite3.connect(str(db_path))
+    cursor.row_factory = sqlite3.Row
+    try:
+        cur=cursor.cursor()
+        cur.execute("""
+            SELECT Temperature, Pressure,Humidity,DateTime FROM SensorRecords ORDER BY DateTime DESC LIMIT ?""", (limit,),
+        )
+        rows=cur.fetchall()
+        return [dict(row) for row in rows]
+    finally:
+        cursor.close()
+
 
 def build_database(db_path: Path, schema: str) -> None:
     try:
