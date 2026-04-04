@@ -62,7 +62,7 @@ def _sync_read_sensor() -> dict:
     }
 
 async def backend_sensor_loop() -> None:
-    await ayncio.sleep(1)
+    await asyncio.sleep(1)
     while True:
         try:
             data = _sync_read_sensor()
