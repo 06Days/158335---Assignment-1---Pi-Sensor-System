@@ -15,8 +15,8 @@ import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from lps22hb import LPS22HB, read_sensor
-from shtc3 import SHTC3, read_sensor
+from lps22hb import LPS22HB
+from shtc3 import SHTC3
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history
 from starlette.responses import StreamingResponse
 
@@ -51,8 +51,8 @@ def get_records(limit: int = 100):
         detail = "Could not fetch event history"
     ) from exception
 def _sync_read_sensor() -> dict:
-    pressure_hpa, temperature_c_lps22hb = LPS22HB.read_sensor(app.state.lps22hb)
-    humidity_percentage, temperature_c_shtc3 = SHTC3.read_sensor(app.state.shtc3)
+    pressure_hpa, temperature_c_lps22hb = app.state.lps22hb.read_sensor(app.state.lps22hb)
+    humidity_percentage, temperature_c_shtc3 = app.state.shtc3.read_sensor(app.state.shtc3)
     now=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     return{
         "DateTime": now,
