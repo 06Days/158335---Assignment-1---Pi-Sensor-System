@@ -16,6 +16,7 @@ from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from lps22hb import LPS22HB, read_sensor
+from shtc3 import SHTC3, read_sensor
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history
 from starlette.responses import StreamingResponse
 
@@ -50,12 +51,14 @@ def get_records(limit: int = 100):
         detail = "Could not fetch event history"
     ) from exception
 def _sync_read_sensor() -> dict:
-    pressure_hpa, temperature_c = read_sensor(app.state.sensor)
+    pressure_hpa, temperature_c_lps22hb = LPS22HB.read_sensor(app.state.lps22hb)
+    humidity_percentage, temperature_c_shtc3 = SHTC3.read_sensor(app.state.shtc3)
     now=datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     return{
         "DateTime": now,
         "Pressure":round(pressure_hpa,2),
-        "Temperature": round(temperature_c, 2),
+        "Temperature": round(temperature_c_shtc3, 2),
+        "Humidity": round(humidity_percentage, 2)
     }
 
 async def backend_sensor_loop() -> None:
@@ -73,8 +76,10 @@ async def backend_sensor_loop() -> None:
 @app.on_event("startup")
 async def startup():
     try:
-        app.state.sensor = LPS22HB()
+        app.state.lps22hb = LPS22HB()
         logging.info("LPS22HB init")
+        app.state.shtc3 = SHTC3()
+        logging.info("SHTC3 init")
     except Exception as exception:
         logging.error(f"Sensor init failed: {exception}")
 
