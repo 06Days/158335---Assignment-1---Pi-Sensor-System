@@ -62,6 +62,7 @@ def _sync_read_sensor() -> dict:
     }
 
 async def backend_sensor_loop() -> None:
+    await ayncio.sleep(1)
     while True:
         try:
             data = _sync_read_sensor()
@@ -76,13 +77,12 @@ async def backend_sensor_loop() -> None:
 @app.on_event("startup")
 async def startup():
     try:
-        app.state.lps22hb = LPS22HB()
+        app.state.lps22hb = lps22hb.LPS22HB()
         logging.info("LPS22HB init")
-        app.state.shtc3 = SHTC3()
+        app.state.shtc3 = shtc3.SHTC3()
         logging.info("SHTC3 init")
     except Exception as exception:
         logging.error(f"Sensor init failed: {exception}")
-
     # now for the database
     try:
         _ensure_database()
