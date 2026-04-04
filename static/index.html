@@ -10,6 +10,7 @@
     <p id="temperature"></p>
     <p id="humidity"></p>
     <canvas id="temperatureChart" width="800" height="400"></canvas>
+    <canvas id="humidityChart" width="800" height="400"></canvas>
   </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,6 +20,7 @@
 
 
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
+  const humidcanvas=document.getElementById('humidityChart').getContext('2d');
   const tempchart = new Chart(tempcanvas, {
     type: 'scatter',
     data: {
@@ -55,7 +57,7 @@
       }
     }
   });
-  const humidchart = new Chart(tempcanvas, {
+  const humidchart = new Chart(humidcanvas, {
     type: 'scatter',
     data: {
       labels: [],
