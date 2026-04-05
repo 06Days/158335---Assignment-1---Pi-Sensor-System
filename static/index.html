@@ -163,9 +163,9 @@
 
           humidchart.data.datasets[0].data = humidChartData.reverse();
           humidchart.update();
-          
+
           humidchart.data.datasets[0].data = pressureChartData.reverse();
-          humidchart.update();
+          pressurechart.update();
         }
       } catch (exception){
         console.error("Could not load history! :",exception);
