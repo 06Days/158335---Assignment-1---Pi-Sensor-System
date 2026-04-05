@@ -11,6 +11,7 @@
     <p id="humidity"></p>
     <canvas id="temperatureChart" width="800" height="400"></canvas>
     <canvas id="humidityChart" width="800" height="400"></canvas>
+    <canvas id="pressureChart" width="800" height="400"></canvas>
   </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,6 +22,7 @@
 
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
   const humidcanvas=document.getElementById('humidityChart').getContext('2d');
+  const pressurecanvas=document.getElementById('pressureChart').getContext('2d');
   const tempchart = new Chart(tempcanvas, {
     type: 'scatter',
     data: {
@@ -55,8 +57,7 @@
         },
         y: {beginAtZero: false}
       }
-    }
-  });
+    }});
   const humidchart = new Chart(humidcanvas, {
     type: 'scatter',
     data: {
@@ -91,8 +92,43 @@
         },
         y: {beginAtZero: false}
       }
-    }
-  });
+    }});
+  const pressurechart = new Chart(pressurecanvas, {
+      type: 'scatter',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Air Pressure (hPa)',
+          borderColor:'black',
+          backgroundColor: 'rgba(0,255,0,0.1)',
+          data: [],
+          }
+        ]
+      },
+      options: {
+        animation: true,
+        scales: {
+          x: {
+            type: 'time',
+            time: {unit: 'minute'},
+            ticks:{
+              // invasive but hopefully will work
+              callback: function(value, index, values){
+                return new Date(value).toLocaleTimeString([],{
+                  hour:'2-digit',
+                  minute:'2-digit'
+              });
+              }
+            },
+            displayFormats:{
+              minute: 'HH:mm'
+            },
+            title: {display: true, text: 'Time'}
+          },
+          y: {beginAtZero: false}
+        }
+      }
+});
 
 
     async function loadHistory(){
@@ -116,11 +152,19 @@
             x: new Date(row.DateTime),
             y: row.Humidity
           })).filter(p =>!isNaN(p.x.getTime()));
+          const pressureChartData = data.map(row => ({
+
+            x: new Date(row.DateTime),
+            y: row.Pressure
+          })).filter(p =>!isNaN(p.x.getTime()));
 
           tempchart.data.datasets[0].data = tempChartData.reverse();
           tempchart.update();
 
           humidchart.data.datasets[0].data = humidChartData.reverse();
+          humidchart.update();
+          
+          humidchart.data.datasets[0].data = pressureChartData.reverse();
           humidchart.update();
         }
       } catch (exception){
