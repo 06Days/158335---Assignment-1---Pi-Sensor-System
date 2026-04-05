@@ -118,10 +118,10 @@
           })).filter(p =>!isNaN(p.x.getTime()));
 
           tempchart.data.datasets[0].data = tempChartData.reverse();
-          humidchart.data.datasets[0].data = tempChartData.reverse();
-          console.log(tempchart.data.labels);
-          console.log("Chart Data:", tempchart.data.datasets[0].data);
           tempchart.update();
+
+          humidchart.data.datasets[0].data = humidChartData.reverse();
+          humidchart.update();
         }
       } catch (exception){
         console.error("Could not load history! :",exception);
