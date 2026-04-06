@@ -3,15 +3,65 @@
   <head>
     <meta charset="utf-8">
     <title>Pi Sensor System</title>
+    <!-- bootstrap include -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   </head>
+<<<<<<< Updated upstream
   <body>
     <h1>This is a test!</h1>
     <p id="pressure"></p>
     <p id="temperature"></p>
     <p id="humidity"></p>
     <canvas id="temperatureChart" width="800" height="400"></canvas>
+=======
+  <body class="bg-light">
+    <div class="contaner py-4">
+
+      <div class="mb-4 d-flex justify-content-center">
+        <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
+          <label class="btn btn-outline-primary active"><input type="radio" name="timeRange" id="range10" autocomplete="off" checked>10 min</label>
+          <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range70" autocomplete="off" checked>1 hr</label>
+          <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range1440" autocomplete="off" checked>1d</label>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-md-4 text-center">
+          <h4>Pressure</h4>
+          <p id="pressure" class="display-6"></p>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-md-4 text-center">
+          <h4>Temperature</h4>
+          <p id="temperature" class="display-6"></p>
+        </div>
+      </div>
+      <div class="row mb-4">
+        <div class="col-md-4 text-center">
+          <h4>Humidity</h4>
+          <p id="humidity" class="display-6"></p>
+        </div>
+      </div>
+      <!-- charts -->
+      <div class="row g-4">
+        <div class="col-md-4">
+          <canvas id="temperatureChart"></canvas>
+        </div>
+        <div class="col-md-4">
+          <canvas id="humidityChart"></canvas>
+        </div>
+        <div class="col-md-4">
+          <canvas id="pressureChart"></canvas>
+        </div>
+      </div>
+    </div>
+>>>>>>> Stashed changes
   </body>
 </html>
+<!-- javascript includes -->
+<!-- Boostrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<!-- Chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="text/javascript">
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
@@ -22,7 +72,7 @@
       datasets: [{
         label: 'Temperature (°C)',
         borderColor:'black',
-        backgroundColor: 'rgba(255,0,0,0.1)',
+        backgroundColor: 'rgba(255,0,0,0.3)',
         data: [],
         }
       ]
@@ -37,6 +87,7 @@
         },
         y: {beginAtZero: true}
       }
+<<<<<<< Updated upstream
     }
   });
   // Keeps the chart within the last minute (temporary)
@@ -53,6 +104,80 @@
   eventSource.onmessage = function (event){
     const message = JSON.parse(e.event);
     const timestamp = new Date(msg.timestamp * 1000);
+=======
+    }});
+  const humidchart = new Chart(humidcanvas, {
+    type: 'scatter',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Humidity (%)',
+        borderColor:'black',
+        backgroundColor: 'rgba(0,0,255,0.3)',
+        data: [],
+        }
+      ]
+    },
+    options: {
+      animation: true,
+      scales: {
+        x: {
+          type: 'time',
+          time: {unit: 'minute'},
+          ticks:{
+            // invasive but hopefully will work
+            callback: function(value, index, values){
+              return new Date(value).toLocaleTimeString([],{
+                hour:'2-digit',
+                minute:'2-digit'
+            });
+            }
+          },
+          displayFormats:{
+            minute: 'HH:mm'
+          },
+          title: {display: true, text: 'Time'}
+        },
+        y: {beginAtZero: false}
+      }
+    }});
+  const pressurechart = new Chart(pressurecanvas, {
+      type: 'scatter',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Air Pressure (hPa)',
+          borderColor:'black',
+          backgroundColor: 'rgba(0,255,0,0.3)',
+          data: [],
+          }
+        ]
+      },
+      options: {
+        animation: true,
+        scales: {
+          x: {
+            type: 'time',
+            time: {unit: 'minute'},
+            ticks:{
+              // invasive but hopefully will work
+              callback: function(value, index, values){
+                return new Date(value).toLocaleTimeString([],{
+                  hour:'2-digit',
+                  minute:'2-digit'
+              });
+              }
+            },
+            displayFormats:{
+              minute: 'HH:mm'
+            },
+            title: {display: true, text: 'Time'}
+          },
+          y: {beginAtZero: false}
+        }
+      }
+});
+>>>>>>> Stashed changes
 
     chart.data.labels.push(timestamp);
     chart.data.datasets[0].data.push(message.temperature_c);
