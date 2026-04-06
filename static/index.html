@@ -6,7 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   </head>
   <body class="bg-light">
-   <div class="contaner py-4">
+   <div class="container py-4">
 
      <div class="mb-4 d-flex justify-content-center">
        <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
@@ -48,16 +48,15 @@
    </div>
 
  </body>
-</html>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- For adapting dates - due to chart.js not working? -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script type="text/javascript">
-
-
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
   const humidcanvas=document.getElementById('humidityChart').getContext('2d');
   const pressurecanvas=document.getElementById('pressureChart').getContext('2d');
+
   const tempchart = new Chart(tempcanvas, {
     type: 'scatter',
     data: {
@@ -162,55 +161,53 @@
           },
           y: {beginAtZero: false}
         }
+      }});
+
+  async function loadHistory(){
+    try{
+      const result = await fetch("/sensor/history?limit=50");
+      const data = await result.json();
+
+      if(data && data.length>0){
+
+        document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
+        document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
+        document.getElementById('humidity').textContent = data[0].Humidity.toFixed(2);
+        console.log("rds:", data[0].DateTime);
+        const tempChartData = data.map(row => ({
+
+          x: new Date(row.DateTime),
+          y: row.Temperature
+        })).filter(p =>!isNaN(p.x.getTime()));
+        const humidChartData = data.map(row => ({
+
+          x: new Date(row.DateTime),
+          y: row.Humidity
+        })).filter(p =>!isNaN(p.x.getTime()));
+        const pressureChartData = data.map(row => ({
+
+          x: new Date(row.DateTime),
+          y: row.Pressure
+        })).filter(p =>!isNaN(p.x.getTime()));
+
+        tempchart.data.datasets[0].data = tempChartData.reverse();
+        tempchart.update();
+
+        humidchart.data.datasets[0].data = humidChartData.reverse();
+        humidchart.update();
+
+        humidchart.data.datasets[0].data = pressureChartData.reverse();
+        pressurechart.update();
       }
-});
-
-
-    async function loadHistory(){
-      try{
-        const result = await fetch("/sensor/history?limit=50");
-        const data = await result.json();
-
-        if(data && data.length>0){
-
-          document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
-          document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
-          document.getElementById('humidity').textContent = data[0].Humidity.toFixed(2);
-          console.log("rds:", data[0].DateTime);
-          const tempChartData = data.map(row => ({
-
-            x: new Date(row.DateTime),
-            y: row.Temperature
-          })).filter(p =>!isNaN(p.x.getTime()));
-          const humidChartData = data.map(row => ({
-
-            x: new Date(row.DateTime),
-            y: row.Humidity
-          })).filter(p =>!isNaN(p.x.getTime()));
-          const pressureChartData = data.map(row => ({
-
-            x: new Date(row.DateTime),
-            y: row.Pressure
-          })).filter(p =>!isNaN(p.x.getTime()));
-
-          tempchart.data.datasets[0].data = tempChartData.reverse();
-          tempchart.update();
-
-          humidchart.data.datasets[0].data = humidChartData.reverse();
-          humidchart.update();
-
-          humidchart.data.datasets[0].data = pressureChartData.reverse();
-          pressurechart.update();
-        }
-      } catch (exception){
-        console.error("Could not load history! :",exception);
-
-      }
-    }
-    window.onload=()=>{
-
-      loadHistory();
-      setInterval(loadHistory,10000);
+    } catch (exception){
+      console.error("Could not load history! :",exception);
 
     }
+  }
+  window.onload=()=>{
+
+    loadHistory();
+    setInterval(loadHistory,10000);
+  }
 </script>
+</html>
