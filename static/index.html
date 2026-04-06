@@ -10,9 +10,9 @@
 
      <div class="mb-4 d-flex justify-content-center">
        <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
-         <label class="btn btn-outline-primary active"><input type="radio" name="timeRange" id="range10" autocomplete="off" checked>10 min</label>
-         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range70" autocomplete="off" checked>1 hr</label>
-         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range1440" autocomplete="off" checked>1d</label>
+         <label class="btn btn-outline-primary active"><input type="radio" name="timeRange" id="range10" value="60" autocomplete="off" checked>10 min</label>
+         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range70" value="360" autocomplete="off" checked>1 hr</label>
+         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range1440" value="8640" autocomplete="off" checked>1d</label>
        </div>
      </div>
      <div class="row mb-4">
@@ -54,6 +54,16 @@
 
 <!-- For adapting dates - due to chart.js not working? -->
 <script type="text/javascript">
+  // Default timeframe filter
+  let currentLimit = 60;
+
+  document.getElementById('timeRangeGroup').addEventListener('change', (click)=>){
+    if (click.target.name ==='timeRange'){
+      currentLimit = click.target.value;
+      loadHistory();
+    }
+  }
+  // Canvas code
   const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
   const humidcanvas=document.getElementById('humidityChart').getContext('2d');
   const pressurecanvas=document.getElementById('pressureChart').getContext('2d');
@@ -166,15 +176,15 @@
 
   async function loadHistory(){
     try{
-      const result = await fetch("/sensor/history?limit=50");
+      const result = await fetch(`/sensor/history?limit=${currentLimit}`);
       const data = await result.json();
 
       if(data && data.length>0){
 
 
-        document.getElementById('temperature').textContent = (data[0].Temperature.toFixed(2)+"℃");
-        document.getElementById('humidity').textContent = (data[0].Humidity.toFixed(2)+"%");
-        document.getElementById('pressure').textContent = (data[0].Pressure.toFixed(2)+"hPa");
+        document.getElementById('temperature').textContent = `${data[0].Temperature.toFixed(2)} ℃`;
+        document.getElementById('humidity').textContent = `${data[0].Humidity.toFixed(2)} %`;
+        document.getElementById('pressure').textContent = `${data[0].Pressure.toFixed(2)} hPa`;
         console.log("rds:", data[0].DateTime);
         const tempChartData = data.map(row => ({
 
@@ -192,6 +202,8 @@
           y: row.Pressure
         })).filter(p =>!isNaN(p.x.getTime()));
 
+        const timeUnit = currentLimit > 1000 ?'hour':'minute';
+        [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=unit});
         tempchart.data.datasets[0].data = tempChartData.reverse();
         tempchart.update();
 
