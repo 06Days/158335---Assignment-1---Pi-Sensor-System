@@ -69,9 +69,9 @@ def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
             amount_buckets[min_key]["Pressure"].append(entry["Pressure"])
             amount_buckets[min_key]["Humidity"].append(entry["Humidity"])
 
-    except Exception as exception:
-        logging.error(f"Could not parse row {entry}: {exception}")
-        continue
+        except Exception as exception:
+            logging.error(f"Could not parse row {entry}: {exception}")
+            continue
 
     grouped=[]
 
