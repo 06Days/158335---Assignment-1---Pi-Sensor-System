@@ -146,9 +146,11 @@ async def get_sensor_history(minutes: int = 10):
         if minutes==10:
             rows = group_by_minute(rows,1)
         elif minutes==60:
-            rows= group_by_minute(rows,10)
+            group = 10 if len(rows) > 60 else 1
+            rows= group_by_minute(rows,group)
         elif minutes >= 1440:
-            rows = group_by_minute(rows, 60)
+            group = 60 if len(rows) > 360 else 10
+            rows = group_by_minute(rows, group)
         # Else nothing required as rows = rows
         return JSONResponse(rows)
     except Exception as exception:
