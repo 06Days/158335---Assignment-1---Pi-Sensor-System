@@ -4,15 +4,49 @@
     <meta charset="utf-8">
     <title>Pi Sensor System</title>
   </head>
-  <body>
-    <h1>This is a test!</h1>
-    <p id="pressure"></p>
-    <p id="temperature"></p>
-    <p id="humidity"></p>
-    <canvas id="temperatureChart" width="800" height="400"></canvas>
-    <canvas id="humidityChart" width="800" height="400"></canvas>
-    <canvas id="pressureChart" width="800" height="400"></canvas>
-  </body>
+  <body class="bg-light">
+   <div class="contaner py-4">
+
+     <div class="mb-4 d-flex justify-content-center">
+       <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
+         <label class="btn btn-outline-primary active"><input type="radio" name="timeRange" id="range10" autocomplete="off" checked>10 min</label>
+         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range70" autocomplete="off" checked>1 hr</label>
+         <label class="btn btn-outline-primary"><input type="radio" name="timeRange" id="range1440" autocomplete="off" checked>1d</label>
+       </div>
+     </div>
+     <div class="row mb-4">
+       <div class="col-md-4 text-center">
+         <h4>Pressure</h4>
+         <p id="pressure" class="display-6"></p>
+       </div>
+     </div>
+     <div class="row mb-4">
+       <div class="col-md-4 text-center">
+         <h4>Temperature</h4>
+         <p id="temperature" class="display-6"></p>
+       </div>
+     </div>
+     <div class="row mb-4">
+       <div class="col-md-4 text-center">
+         <h4>Humidity</h4>
+         <p id="humidity" class="display-6"></p>
+       </div>
+     </div>
+     <!-- charts -->
+     <div class="row g-4">
+       <div class="col-md-4">
+         <canvas id="temperatureChart"></canvas>
+       </div>
+       <div class="col-md-4">
+         <canvas id="humidityChart"></canvas>
+       </div>
+       <div class="col-md-4">
+         <canvas id="pressureChart"></canvas>
+       </div>
+     </div>
+   </div>
+
+ </body>
 </html>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- For adapting dates - due to chart.js not working? -->
@@ -164,7 +198,7 @@
           humidchart.data.datasets[0].data = humidChartData.reverse();
           humidchart.update();
 
-          pressurechart.data.datasets[0].data = pressureChartData.reverse();
+          humidchart.data.datasets[0].data = pressureChartData.reverse();
           pressurechart.update();
         }
       } catch (exception){
