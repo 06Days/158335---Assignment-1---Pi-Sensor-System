@@ -67,16 +67,16 @@ def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
         amount_buckets[min_key]["Pressure"].append(entry["Pressure"])
         amount_buckets[min_key]["Humidity"].append(entry["Humidity"])
 
-        grouped=[]
+    grouped=[]
 
-        for minute, values in amount_buckets.items():
-            grouped.append({
-                "DateTime":f"{minute}:00Z",
-                "Temperature":round(sum(values["Temperature"])/len(values["Temperature"]),2),
-                "Pressure":round(sum(values["Pressure"])/len(values["Pressure"]),2),
-                "Humidity":round(sum(values["Humidity"])/len(values["Humidity"]),2),
-            })
-        return sorted(grouped, key=lambda x: x["DateTime"], reverse=True)
+    for minute, values in amount_buckets.items():
+        grouped.append({
+            "DateTime":f"{minute}:00Z",
+            "Temperature":round(sum(values["Temperature"])/len(values["Temperature"]),2),
+            "Pressure":round(sum(values["Pressure"])/len(values["Pressure"]),2),
+            "Humidity":round(sum(values["Humidity"])/len(values["Humidity"]),2),
+        })
+    return sorted(grouped, key=lambda x: x["DateTime"], reverse=True)
 
 
 
@@ -140,6 +140,9 @@ async def get_sensor_history(minutes: int = 10):
     try:
         limit=minutes*7
         rows = fetch_history(app.state.db_path, limit=limit)
+        if len(rows)<15:
+            return JSONResponse(group_by_minute(rows, 1))
+
         if minutes==10:
             rows = group_by_minute(rows,1)
         elif minutes==60:
