@@ -203,7 +203,7 @@
         })).filter(p =>!isNaN(p.x.getTime()));
 
         const timeUnit = currentLimit > 1000 ?'hour':'minute';
-        [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=unit});
+        [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=timeUnit});
         tempchart.data.datasets[0].data = tempChartData.reverse();
         tempchart.update();
 
