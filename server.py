@@ -57,21 +57,27 @@ def get_records(limit: int = 100):
 def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
-        dt=datetime.datetime.fromisoformat(entry["DateTime"].replace('Z',''))
-        rounded_min=(dt.minute//bucket_size_mins) * bucket_size_mins
-        min_key = dt.replace(minute=rounded_min, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:00Z')
-        if min_key not in amount_buckets:
-            amount_buckets[min_key] = {"Temperature": [], "Pressure": [], "Humidity": []}
+        try:
+            dt_str=entry["DateTime"].replace('Z',''))
+            dt=datetime.datetime.fromisoformat(dt_str)
+            rounded_min=(dt.minute//bucket_size_mins) * bucket_size_mins
+            min_key = dt.replace(minute=rounded_min, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:00')
+            if min_key not in amount_buckets:
+                amount_buckets[min_key] = {"Temperature": [], "Pressure": [], "Humidity": []}
 
-        amount_buckets[min_key]["Temperature"].append(entry["Temperature"])
-        amount_buckets[min_key]["Pressure"].append(entry["Pressure"])
-        amount_buckets[min_key]["Humidity"].append(entry["Humidity"])
+            amount_buckets[min_key]["Temperature"].append(entry["Temperature"])
+            amount_buckets[min_key]["Pressure"].append(entry["Pressure"])
+            amount_buckets[min_key]["Humidity"].append(entry["Humidity"])
+
+    except Exception as exception:
+        logging.error(f"Could not parse row {entry}: {exception}")
+        continue
 
     grouped=[]
 
     for minute, values in amount_buckets.items():
         grouped.append({
-            "DateTime":f"{minute}:00Z",
+            "DateTime":f"{minute}Z",
             "Temperature":round(sum(values["Temperature"])/len(values["Temperature"]),2),
             "Pressure":round(sum(values["Pressure"])/len(values["Pressure"]),2),
             "Humidity":round(sum(values["Humidity"])/len(values["Humidity"]),2),
