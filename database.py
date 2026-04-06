@@ -60,7 +60,7 @@ def fetch_history(db_path: Path, limit: int=100)->List[Dict]:
     try:
         cur=cursor.cursor()
         cur.execute("""
-            SELECT Temperature, Pressure,Humidity,DateTime FROM SensorRecords ORDER BY DateTime DESC LIMIT ?""", (limit,),
+			SELECT Temperature, Pressure,Humidity,DateTime FROM SensorRecords WHERE DateTime >= DATETIME('now' ,'-24 hours') ORDER BY DateTime DESC LIMIT ?""", (limit,),
         )
         rows=cur.fetchall()
         return [dict(row) for row in rows]

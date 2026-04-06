@@ -53,10 +53,13 @@ def get_records(limit: int = 100):
         status_code=500,
         detail = "Could not fetch event history"
     ) from exception
-def group_by_minute(data: List[Dict]) -> List[Dict]:
+
+def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
-        min_key = entry["DateTime"][:16]
+        datetime=datetime.fromisoformat(entry["DateTime"].replace('Z',''))
+        rounded_min=(dt.minute//bucket_size_mins) * bucket_size_mins
+        min_key = dt.replace(minute=rounded_min, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:00Z')
         if min_key not in amount_buckets:
             amount_buckets[min_key] = {"Temperature": [], "Pressure": [], "Humidity": []}
 
@@ -132,11 +135,18 @@ async def read_index():
         raise HTTPException(status_code=500, detail="Missing index file") from exception
 
 @app.get("/sensor/history", response_class=JSONResponse)
-async def get_sensor_history(limit: int = 100):
+async def get_sensor_history(minutes: int = 10):
+
     try:
+        limit=minutes*7
         rows = fetch_history(app.state.db_path, limit=limit)
-        if limit > 360:
-            rows = group_by_minute(rows)
+        if minutes==10:
+            rows = group_by_minute(rows,1)
+        elif minutes==60:
+            rows= group_by_minute(rows,10)
+        elif minutes >= 1440:
+            rows = group_by_minute(rows, 60)
+        # Else nothing required as rows = rows
         return JSONResponse(rows)
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
