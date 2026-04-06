@@ -95,11 +95,11 @@ async def backend_sensor_loop() -> None:
         try:
             data = _sync_read_sensor()
             log_sensor_data(DB_FILE, data)
-            logging.info("Sensor data has been logged")
+            logging.info("---")
         except Exception as exception:
             logging.error(f"Could not log sensor data {exception}")
         # 10 Second - placeholder, will become a setting
-        await asyncio.sleep(10)
+        await asyncio.sleep(1)
 
 # Init the LPS22HB And SHTC3 sensors on start
 @app.on_event("startup")
@@ -135,7 +135,6 @@ async def read_index():
 async def get_sensor_history(limit: int = 100):
     try:
         rows = fetch_history(app.state.db_path, limit=limit)
-        print(f"Dbg:{len(rows)} records in DB")
         return JSONResponse(rows)
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
