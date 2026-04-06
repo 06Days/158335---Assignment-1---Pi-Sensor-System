@@ -69,9 +69,9 @@ def group_by_minute(data: List[Dict]) -> List[Dict]:
         for minute, values in amount_buckets.items():
             grouped.append({
                 "DateTime":f"{minute}:00Z",
-                "Temperature":round(sum(values["temperature"])/len(values["temperature"]),2),
-                "Pressure":round(sum(values["pressure"])/len(values["pressure"]),2),
-                "Humidity":round(sum(values["humidity"])/len(values["humidity"]),2),
+                "Temperature":round(sum(values["Temperature"])/len(values["Temperature"]),2),
+                "Pressure":round(sum(values["Pressure"])/len(values["Pressure"]),2),
+                "Humidity":round(sum(values["Humidity"])/len(values["Humidity"]),2),
             })
         return sorted(grouped, key=lambda x: x["DateTime"], reverse=True)
 
