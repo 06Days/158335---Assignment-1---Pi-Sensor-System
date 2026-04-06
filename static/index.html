@@ -172,9 +172,9 @@
       if(data && data.length>0){
 
 
-        document.getElementById('temperature').textContent = data[0].Temperature.toFixed(2);
-        document.getElementById('humidity').textContent = data[0].Humidity.toFixed(2);
-        document.getElementById('pressure').textContent = data[0].Pressure.toFixed(2);
+        document.getElementById('temperature').textContent = (data[0].Temperature.toFixed(2)+"℃");
+        document.getElementById('humidity').textContent = (data[0].Humidity.toFixed(2)+"%");
+        document.getElementById('pressure').textContent = (data[0].Pressure.toFixed(2)+"hPa");
         console.log("rds:", data[0].DateTime);
         const tempChartData = data.map(row => ({
 
