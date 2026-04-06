@@ -58,7 +58,7 @@ def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
         try:
-            dt_str=entry["DateTime"].replace('Z',''))
+            dt_str=(entry["DateTime"].replace('Z',''))
             dt=datetime.datetime.fromisoformat(dt_str)
             rounded_min=(dt.minute//bucket_size_mins) * bucket_size_mins
             min_key = dt.replace(minute=rounded_min, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:00')
