@@ -144,12 +144,13 @@ async def read_index():
 async def get_sensor_history(minutes: int = 10):
 
     try:
-        limit=minutes*7
+        limit=minutes*8
         rows = fetch_history(app.state.db_path, limit=limit)
         if len(rows)<15:
             return JSONResponse(group_by_minute(rows, 1))
-
-        if minutes==10:
+        if minutes==1:
+            return JSONResponse(rows)
+        elif minutes==10:
             rows = group_by_minute(rows,1)
         elif minutes==60:
             group = 10 if len(rows) > 60 else 1
