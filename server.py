@@ -44,6 +44,8 @@ def _ensure_database() -> None:
 def get_records(limit: int = 100):
     try:
         history = fetch_history(DB_FILE, limit)
+        if limit > 360:
+            rows = gather_by_minute(history)
         return history
     except Exception as exception:
         logger.error(f"Failed to fetch records {exception}")
@@ -51,6 +53,31 @@ def get_records(limit: int = 100):
         status_code=500,
         detail = "Could not fetch event history"
     ) from exception
+def group_by_minute(data: List[Dict]) -> List[Dict]:
+    amount_buckets = {}
+    for entry in data:
+        min_key = entry["DateTime"][:16]
+        if min_key not in amount_buckets:
+            amount_buckets[min_key] = {"temp": [], "press": [], "hum": []}
+
+        amount_buckets[min_key]["temperature"].append(entry["Temperature"])
+        amount_buckets[min_key]["pressure"].append(entry["Pressure"])
+        amount_buckets[min_key]["humidity"].append(entry["Humidity"])
+
+        grouped=[]
+
+        for minute, values in amount_buckets.items():
+            grouped.append({
+                "DateTime":f"{minute}:00Z",
+                "Temperature":round(sum(values["temperature"])/len(values["temperature"]),2),
+                "Pressure":round(sum(values["pressure"])/len(values["pressure"]),2),
+                "Humidity":round(sum(values["humidity"])/len(values["humidity"]),2),
+            })
+        return sorted(grouped, key=lambda x: x["DateTime"], reverse=True)
+
+
+
+
 def _sync_read_sensor() -> dict:
     pressure_hpa, temperature_c_lps22hb = lps22hb.read_sensor(app.state.lps22hb)
     humidity_percentage, temperature_c_shtc3 = shtc3.read_sensor(app.state.shtc3)
