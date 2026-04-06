@@ -58,11 +58,11 @@ def group_by_minute(data: List[Dict]) -> List[Dict]:
     for entry in data:
         min_key = entry["DateTime"][:16]
         if min_key not in amount_buckets:
-            amount_buckets[min_key] = {"temp": [], "press": [], "hum": []}
+            amount_buckets[min_key] = {"Temperature": [], "Pressure": [], "Humidity": []}
 
-        amount_buckets[min_key]["temperature"].append(entry["Temperature"])
-        amount_buckets[min_key]["pressure"].append(entry["Pressure"])
-        amount_buckets[min_key]["humidity"].append(entry["Humidity"])
+        amount_buckets[min_key]["Temperature"].append(entry["Temperature"])
+        amount_buckets[min_key]["Pressure"].append(entry["Pressure"])
+        amount_buckets[min_key]["Humidity"].append(entry["Humidity"])
 
         grouped=[]
 
