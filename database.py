@@ -97,7 +97,7 @@ def fetch_latest_event_by_name(db_path: Path, limit: int=1, event_name: str="Hig
 	finally:
 	    cursor.close()
 
-def log_event_if_passes(cursor: sqlite3.cursor, record_id: int, event_name: str, current_value: float, compare_type: str):
+def log_event_if_passes(cursor: sqlite3.Cursor, record_id: int, event_name: str, current_value: float, compare_type: str):
 	# event_name:
 	# - Highest Temperature
 	# - Lowest Temperature
