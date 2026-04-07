@@ -25,7 +25,7 @@ const tempchart = new Chart(tempcanvas, {
     ]
   },
   options: {
-    animation: true,
+    animation: false,
     scales: {
       x: {
         type: 'time',
@@ -60,7 +60,7 @@ const humidchart = new Chart(humidcanvas, {
     ]
   },
   options: {
-    animation: true,
+    animation: false,
     scales: {
       x: {
         type: 'time',
@@ -95,7 +95,7 @@ const pressurechart = new Chart(pressurecanvas, {
       ]
     },
     options: {
-      animation: true,
+      animation: false,
       scales: {
         x: {
           type: 'time',
@@ -115,6 +115,38 @@ const pressurechart = new Chart(pressurecanvas, {
           title: {display: true, text: 'Time'}
         },
         y: {beginAtZero: false}
+      },
+      plugins:{
+        annotation:{
+          annotations:{
+            maxLine:{
+              type:'line',
+              yMin:0,
+              yMax:0,
+              borderColor:'red',
+              borderWidth:2,
+              borderDash:[6,6],
+              label:{
+                display:true,
+                content:'High',
+                position:'end'
+              }
+            },
+            maxLine:{
+              type:'line',
+              yMin:0,
+              yMax:0,
+              borderColor:'blue',
+              borderWidth:2,
+              borderDash:[6,6],
+              label:{
+                display:true,
+                content:'Low',
+                position:'end'
+              }
+            }
+          }
+        }
       }
     }});
 
@@ -186,6 +218,10 @@ async function updateScales(){
   if (highTemp && lowTemp) {
       tempchart.options.scales.y.min = Math.floor(lowTemp.Temperature);
       tempchart.options.scales.y.max = Math.ceil(highTemp.Temperature);
+      tempchart.options.plugins.annotation.annotations.maxLine.yMin = highTemp.Temperature;
+      tempchart.options.plugins.annotation.annotations.maxLine.yMax = highTemp.Temperature;
+      tempchart.options.plugins.annotation.annotations.minLine.yMin = lowTemp.Temperature;
+      tempchart.options.plugins.annotation.annotations.minLine.yMax = lowTemp.Temperature;
       tempchart.update('none');
   }
   // humidity y axis
