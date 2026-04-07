@@ -58,7 +58,7 @@ def group_by_dyn(data: List[Dict], group_seconds: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
         try:
-            dt=datetime.datetime.fromisoformat(entry["DateTime"]).replace('Z',''))
+            dt=datetime.datetime.fromisoformat(entry["DateTime"]).replace('Z','')
 
             ts=int(dt.timestamp())
 
