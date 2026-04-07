@@ -66,7 +66,7 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
 			log_event_if_passes(cursor, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
 			log_event_if_passes(cursor, record_id, "Highest Humidity", record["Humidity"],"Highest")
 			log_event_if_passes(cursor, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
-			cursor.commit();
+			connection.commit();
 	except Exception as exception:
 		logging.error(f"failed to add sensor data to database {exception}")
 
