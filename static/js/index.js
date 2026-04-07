@@ -62,7 +62,7 @@ const tempchart = new Chart(tempcanvas, {
               position:'end'
             }
           },
-          maxLine:{
+          minLine:{
             type:'line',
             yMin:0,
             yMax:0,
@@ -129,7 +129,7 @@ const humidchart = new Chart(humidcanvas, {
               position:'end'
             }
           },
-          maxLine:{
+          minLine:{
             type:'line',
             yMin:0,
             yMax:0,
@@ -196,7 +196,7 @@ const pressurechart = new Chart(pressurecanvas, {
                 position:'end'
               }
             },
-            maxLine:{
+            minLine:{
               type:'line',
               yMin:0,
               yMax:0,
