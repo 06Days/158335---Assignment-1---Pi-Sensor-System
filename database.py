@@ -60,12 +60,12 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
 			cursor.execute("""INSERT INTO SensorRecords (DateTime,Temperature,Pressure,Humidity) VALUES(?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
 
 			record_id=cursor.lastrowid
-			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
-			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
-			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Pressure", record["Pressure"],"Highest")
-			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
-			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Humidity", record["Humidity"],"Highest")
-			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
+			log_event_if_passes(cursor, record_id, "Highest Temperature", record["Temperature"],"Highest")
+			log_event_if_passes(cursor, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
+			log_event_if_passes(cursor, record_id, "Highest Pressure", record["Pressure"],"Highest")
+			log_event_if_passes(cursor, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
+			log_event_if_passes(cursor, record_id, "Highest Humidity", record["Humidity"],"Highest")
+			log_event_if_passes(cursor, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
 			cursor.commit();
 	except Exception as exception:
 		logging.error(f"failed to add sensor data to database {exception}")
