@@ -206,17 +206,57 @@
         const timeUnit = currentLimit > 1000 ?'hour':'minute';
         [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=timeUnit});
         tempchart.data.datasets[0].data = tempChartData.reverse();
+        humidchart.data.datasets[0].data = humidChartData.reverse();
+        pressurechart.data.datasets[0].data = pressureChartData.reverse();
+        updateScales();
         tempchart.update();
 
-        humidchart.data.datasets[0].data = humidChartData.reverse();
+
         humidchart.update();
 
-        pressurechart.data.datasets[0].data = pressureChartData.reverse();
+
         pressurechart.update();
       }
     } catch (exception){
       console.error("Could not load history! :",exception);
 
+    }
+  }
+  async function fetchEvent(eventName){
+    try {
+      const response = await fetch(`/sensor/history/event?name=${encodeURIComponent(eventName)}&limit=1`);
+      const data = await response.json();
+      return data.length > 0 ? data[0] : null;
+    } catch (exception) {
+      console.error("Could NOT fetch event", exception);
+      return null;
+    }
+  }
+  async function updateScales(){
+    const highTemp = await fetchEvent("Highest Temperature");
+    const lowTemp = await fetchEvent("Lowest Temperature");
+    const highPress = await fetchEvent("Highest Pressure");
+    const lowPress = await fetchEvent("Lowest Pressure");
+    const highHumid = await fetchEvent("Highest Humidity");
+    const lowHumid = await fetchEvent("Lowest Humidity");
+    // temperature y axis
+    if (highTemp && lowTemp) {
+        tempchart.options.scales.y.min = Math.floor(lowTemp.Temperature - 1);
+        tempchart.options.scales.y.max = Math.ceil(highTemp.Temperature + 1);
+        tempchart.update('none');
+    }
+    // humidity y axis
+    if (highHumid && lowHumid) {
+        humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity - 5);
+        humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity + 5);
+        humidchart.update('none');
+
+    }
+    // air pressure y axis
+    if (highPress && lowPress) {
+        pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure - 2);
+        pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure + 2);
+        pressurechart.update('none');
     }
   }
   window.onload = () => {
