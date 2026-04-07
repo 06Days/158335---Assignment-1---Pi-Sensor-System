@@ -241,21 +241,21 @@
     const lowHumid = await fetchEvent("Lowest Humidity");
     // temperature y axis
     if (highTemp && lowTemp) {
-        tempchart.options.scales.y.min = Math.floor(lowTemp.Temperature - 1);
-        tempchart.options.scales.y.max = Math.ceil(highTemp.Temperature + 1);
+        tempchart.options.scales.y.min = Math.floor(lowTemp.Temperature);
+        tempchart.options.scales.y.max = Math.ceil(highTemp.Temperature);
         tempchart.update('none');
     }
     // humidity y axis
     if (highHumid && lowHumid) {
-        humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity - 5);
-        humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity + 5);
+        humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity);
+        humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity);
         humidchart.update('none');
 
     }
     // air pressure y axis
     if (highPress && lowPress) {
-        pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure - 2);
-        pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure + 2);
+        pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure);
+        pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
         pressurechart.update('none');
     }
   }
