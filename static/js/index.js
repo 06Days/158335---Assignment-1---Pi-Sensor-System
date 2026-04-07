@@ -45,6 +45,38 @@ const tempchart = new Chart(tempcanvas, {
         title: {display: true, text: 'Time'}
       },
       y: {beginAtZero: false}
+    },
+    plugins:{
+      annotation:{
+        annotations:{
+          maxLine:{
+            type:'line',
+            yMin:0,
+            yMax:0,
+            borderColor:'red',
+            borderWidth:2,
+            borderDash:[6,6],
+            label:{
+              display:true,
+              content:'High',
+              position:'end'
+            }
+          },
+          maxLine:{
+            type:'line',
+            yMin:0,
+            yMax:0,
+            borderColor:'blue',
+            borderWidth:2,
+            borderDash:[6,6],
+            label:{
+              display:true,
+              content:'Low',
+              position:'end'
+            }
+          }
+        }
+      }
     }
   }});
 const humidchart = new Chart(humidcanvas, {
@@ -80,6 +112,38 @@ const humidchart = new Chart(humidcanvas, {
         title: {display: true, text: 'Time'}
       },
       y: {beginAtZero: false}
+    },
+    plugins:{
+      annotation:{
+        annotations:{
+          maxLine:{
+            type:'line',
+            yMin:0,
+            yMax:0,
+            borderColor:'red',
+            borderWidth:2,
+            borderDash:[6,6],
+            label:{
+              display:true,
+              content:'High',
+              position:'end'
+            }
+          },
+          maxLine:{
+            type:'line',
+            yMin:0,
+            yMax:0,
+            borderColor:'blue',
+            borderWidth:2,
+            borderDash:[6,6],
+            label:{
+              display:true,
+              content:'Low',
+              position:'end'
+            }
+          }
+        }
+      }
     }
   }});
 const pressurechart = new Chart(pressurecanvas, {
@@ -228,6 +292,10 @@ async function updateScales(){
   if (highHumid && lowHumid) {
       humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity);
       humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity);
+      humidchart.options.plugins.annotation.annotations.maxLine.yMin = highHumid.Temperature;
+      humidchart.options.plugins.annotation.annotations.maxLine.yMax = highHumid.Temperature;
+      humidchart.options.plugins.annotation.annotations.minLine.yMin = lowHumid.Temperature;
+      humidchart.options.plugins.annotation.annotations.minLine.yMax = lowHumid.Temperature;
       humidchart.update('none');
 
   }
@@ -235,6 +303,11 @@ async function updateScales(){
   if (highPress && lowPress) {
       pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure);
       pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
+      pressurechart.options.scales.y.max = Math.ceil(highHumid.Humidity);
+      pressurechart.options.plugins.annotation.annotations.maxLine.yMin = highPress.Temperature;
+      pressurechart.options.plugins.annotation.annotations.maxLine.yMax = highPress.Temperature;
+      pressurechart.options.plugins.annotation.annotations.minLine.yMin = lowPress.Temperature;
+      pressurechart.options.plugins.annotation.annotations.minLine.yMax = lowPress.Temperature;
       pressurechart.update('none');
   }
 }
