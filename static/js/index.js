@@ -1,0 +1,210 @@
+// Default timeframe filter
+let currentLimit = 60;
+
+document.getElementById('timeRangeGroup').addEventListener('change', (click)=>{
+  if (click.target.name ==='timeRange'){
+    currentLimit = click.target.value;
+    loadHistory();
+  }
+});
+// Canvas code
+const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
+const humidcanvas=document.getElementById('humidityChart').getContext('2d');
+const pressurecanvas=document.getElementById('pressureChart').getContext('2d');
+
+const tempchart = new Chart(tempcanvas, {
+  type: 'scatter',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Temperature (°C)',
+      borderColor:'black',
+      backgroundColor: 'rgba(255,0,0,0.3)',
+      data: [],
+      }
+    ]
+  },
+  options: {
+    animation: true,
+    scales: {
+      x: {
+        type: 'time',
+        time: {unit: 'minute'},
+        ticks:{
+          // invasive but hopefully will work
+          callback: function(value, index, values){
+            return new Date(value).toLocaleTimeString([],{
+              hour:'2-digit',
+              minute:'2-digit'
+          });
+          }
+        },
+        displayFormats:{
+          minute: 'HH:mm'
+        },
+        title: {display: true, text: 'Time'}
+      },
+      y: {beginAtZero: false}
+    }
+  }});
+const humidchart = new Chart(humidcanvas, {
+  type: 'scatter',
+  data: {
+    labels: [],
+    datasets: [{
+      label: 'Humidity (%)',
+      borderColor:'black',
+      backgroundColor: 'rgba(0,255,0,0.3)',
+      data: [],
+      }
+    ]
+  },
+  options: {
+    animation: true,
+    scales: {
+      x: {
+        type: 'time',
+        time: {unit: 'minute'},
+        ticks:{
+          // invasive but hopefully will work
+          callback: function(value, index, values){
+            return new Date(value).toLocaleTimeString([],{
+              hour:'2-digit',
+              minute:'2-digit'
+          });
+          }
+        },
+        displayFormats:{
+          minute: 'HH:mm'
+        },
+        title: {display: true, text: 'Time'}
+      },
+      y: {beginAtZero: false}
+    }
+  }});
+const pressurechart = new Chart(pressurecanvas, {
+    type: 'scatter',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Air Pressure (hPa)',
+        borderColor:'black',
+        backgroundColor: 'rgba(0,0,255,0.3)',
+        data: [],
+        }
+      ]
+    },
+    options: {
+      animation: true,
+      scales: {
+        x: {
+          type: 'time',
+          time: {unit: 'minute'},
+          ticks:{
+            // invasive but hopefully will work
+            callback: function(value, index, values){
+              return new Date(value).toLocaleTimeString([],{
+                hour:'2-digit',
+                minute:'2-digit'
+            });
+            }
+          },
+          displayFormats:{
+            minute: 'HH:mm'
+          },
+          title: {display: true, text: 'Time'}
+        },
+        y: {beginAtZero: false}
+      }
+    }});
+
+async function loadHistory(){
+  try{
+    const result = await fetch(`/sensor/history?minutes=${currentLimit}`);
+    const data = await result.json();
+
+    if(data && data.length>0){
+
+
+      document.getElementById('temperature').textContent = `${data[0].Temperature.toFixed(2)} ℃`;
+      document.getElementById('humidity').textContent = `${data[0].Humidity.toFixed(2)} %`;
+      document.getElementById('pressure').textContent = `${data[0].Pressure.toFixed(2)} hPa`;
+      console.log("rds:", data[0].DateTime);
+      const tempChartData = data.map(row => ({
+
+        x: new Date(row.DateTime),
+        y: row.Temperature
+      })).filter(p =>!isNaN(p.x.getTime()));
+      const humidChartData = data.map(row => ({
+
+        x: new Date(row.DateTime),
+        y: row.Humidity
+      })).filter(p =>!isNaN(p.x.getTime()));
+      const pressureChartData = data.map(row => ({
+
+        x: new Date(row.DateTime),
+        y: row.Pressure
+      })).filter(p =>!isNaN(p.x.getTime()));
+
+      const timeUnit = currentLimit > 1000 ?'hour':'minute';
+      [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=timeUnit});
+      tempchart.data.datasets[0].data = tempChartData.reverse();
+      humidchart.data.datasets[0].data = humidChartData.reverse();
+      pressurechart.data.datasets[0].data = pressureChartData.reverse();
+      updateScales();
+      tempchart.update();
+
+
+      humidchart.update();
+
+
+      pressurechart.update();
+    }
+  } catch (exception){
+    console.error("Could not load history! :",exception);
+
+  }
+}
+async function fetchEvent(eventName){
+  try {
+    const response = await fetch(`/sensor/history/event?name=${encodeURIComponent(eventName)}&limit=1`);
+    const data = await response.json();
+    return data.length > 0 ? data[0] : null;
+  } catch (exception) {
+    console.error("Could NOT fetch event", exception);
+    return null;
+  }
+}
+async function updateScales(){
+  const highTemp = await fetchEvent("Highest Temperature");
+  const lowTemp = await fetchEvent("Lowest Temperature");
+  const highPress = await fetchEvent("Highest Pressure");
+  const lowPress = await fetchEvent("Lowest Pressure");
+  const highHumid = await fetchEvent("Highest Humidity");
+  const lowHumid = await fetchEvent("Lowest Humidity");
+  // temperature y axis
+  if (highTemp && lowTemp) {
+      tempchart.options.scales.y.min = Math.floor(lowTemp.Temperature);
+      tempchart.options.scales.y.max = Math.ceil(highTemp.Temperature);
+      tempchart.update('none');
+  }
+  // humidity y axis
+  if (highHumid && lowHumid) {
+      humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity);
+      humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity);
+      humidchart.update('none');
+
+  }
+  // air pressure y axis
+  if (highPress && lowPress) {
+      pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure);
+      pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
+      pressurechart.update('none');
+  }
+}
+window.onload = () => {
+setTimeout(() => {
+  loadHistory();
+  setInterval(loadHistory, 1000);
+}, 100);
+};
