@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, Streamin
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import lps22hb
 import shtc3
-from database import build_database, DB_SCHEME, log_sensor_data, fetch_history
+from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
 from starlette.responses import StreamingResponse
 
 DB_DIRECTORY = Path(__file__).parent / "data"
@@ -115,6 +115,12 @@ async def backend_sensor_loop() -> None:
             logging.error(f"Could not log sensor data {exception}")
         # 10 Second - placeholder, will become a setting
         await asyncio.sleep(1)
+
+@app.get("/sensor/history/event")
+async def get_event_record(name: str, limit: int = 1):
+    # calls the event in database.py for returning the correct event record
+    events = fetch_latest_event_by_name(app.state.db_path, limit=limit, event_name=name)
+    return JSONResponse(events)
 
 # Init the LPS22HB And SHTC3 sensors on start
 @app.on_event("startup")
