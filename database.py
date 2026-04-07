@@ -15,6 +15,9 @@ from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+DB_DIRECTORY = Path(__file__).parent / "data"
+DB_FILE = DB_DIRECTORY / "db.db"
+
 # V2 Of my DB schema for the project - now includes eventTypes
 DB_SCHEME = """
 BEGIN TRANSACTION;
@@ -54,7 +57,13 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
         with sqlite3.connect(str(db_path)) as cursor:
             cursor.execute("""INSERT INTO SensorRecords (DateTime, Temperature, Pressure, Humidity) VALUES (?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
             cursor.commit();
-            record_id=cursor.execute("SELECT last_insert_rowid()").fetchone()[0]
+			record_id=cursor.lastrowid
+			log_event_if_passes(DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
+			log_event_if_passes(DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
+			log_event_if_passes(DB_FILE, record_id, "Highest Pressure", record["Pressure"],"Highest")
+			log_event_if_passes(DB_FILE, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
+			log_event_if_passes(DB_FILE, record_id, "Highest Humidity", record["Humidity"],"Highest")
+			log_event_if_passes(DB_FILE, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
             # Implementation for 'events - highest / lowest records etc goes here'
 
 
@@ -68,7 +77,7 @@ def fetch_history(db_path: Path, limit: int=100)->List[Dict]:
     try:
         cur=cursor.cursor()
         cur.execute("""
-			SELECT Temperature, Pressure,Humidity,DateTime FROM SensorRecords WHERE DateTime >= DATETIME('now' ,'-24 hours') ORDER BY DateTime DESC LIMIT ?""", (limit,),
+			SELECT Temperature,Pressure,Humidity,DateTime FROM SensorRecords WHERE DateTime >= DATETIME('now' ,'-24 hours') ORDER BY DateTime DESC LIMIT ?""", (limit,),
         )
         rows=cur.fetchall()
         return [dict(row) for row in rows]
@@ -87,6 +96,40 @@ def fetch_latest_event_by_name(db_path: Path, limit: int=1, event_name: str="Hig
 		return[dict(row) for row in rows]
 	finally:
 	    cursor.close()
+
+def log_event_if_passes(db_path: Path, record_id: int, event_name: str, current_value: float, compare_type: str):
+	# event_name:
+	# - Highest Temperature
+	# - Lowest Temperature
+	# - Highest Pressure
+	# - Lowest Pressure
+	# - Highest Humidity
+	# - Lowest Humidity
+	cursor=sqlite3.connect(str(db_path))
+	# got a bit long this one, so made it into a paragraph
+	query="""SELECT SensorRecords.Temperature, SensorRecords.Pressure, SensorRecords.Humidity FROM SensorEvents INNER JOIN EventTypes ON SensorEvents.TypeID = EventTypes.TypeID INNER JOIN SensorRecords ON SensorEvents.RecordID = SensorRecords.RecordID WHERE EventTypes.Name=? ORDER BY SensorRecords.DateTime DESC LIMIT 1"""
+	cursor.execute(query,(event_name,))
+	row = cursor.fetchone()
+	metric = "Temperature"
+	if "Pressure" in event_name: metric = "Pressure"
+	if "Humidity" in event_name: metric = "Humidity"
+	passes = False
+	if not row:
+		passes = True
+	else:
+		previous_record = row[metric]
+		if compare_type == "Highest" and current_value > previous_record:
+			passes = True
+		elif compare_type == "Lowest" and current_value < previous_record:
+			passes = True
+	if passes:
+		# gather our typeID
+		cursor.execute("SELECT TypeID FROM EventTypes WHERE Name = ?", (event_name,))
+		type_id = cursor.fetchone()[0]
+		# use that in order to store a new event
+		cursor.execute("INSERT INTO SensorEvents (TypeID,RecordID) VALUES (?, ?)",(type_id, record_id))
+		logging.info(f"New event!: {event_name}({current_value})")
+
 def build_database(db_path: Path, schema: str) -> None:
     try:
         db_path.parent.mkdir(parents=True, exist_ok=True)
