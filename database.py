@@ -54,16 +54,19 @@ COMMIT;
 
 def log_sensor_data(db_path: Path, record: dict) -> None:
 	try:
-		with sqlite3.connect(str(db_path)) as cursor:
+		with sqlite3.connect(str(db_path)) as connection:
+			connection.row_factory = sqlite3.Row
+			cursor=connection.cursor()
 			cursor.execute("""INSERT INTO SensorRecords (DateTime,Temperature,Pressure,Humidity) VALUES(?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
+
+			record_id=cursor.lastrowid()
+			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
+			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
+			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Pressure", record["Pressure"],"Highest")
+			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
+			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Humidity", record["Humidity"],"Highest")
+			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
 			cursor.commit();
-			record_id=cursor.lastrowid
-			log_event_if_passes(DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
-			log_event_if_passes(DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
-			log_event_if_passes(DB_FILE, record_id, "Highest Pressure", record["Pressure"],"Highest")
-			log_event_if_passes(DB_FILE, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
-			log_event_if_passes(DB_FILE, record_id, "Highest Humidity", record["Humidity"],"Highest")
-			log_event_if_passes(DB_FILE, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
 	except Exception as exception:
 		logging.error(f"failed to add sensor data to database {exception}")
 
@@ -94,7 +97,7 @@ def fetch_latest_event_by_name(db_path: Path, limit: int=1, event_name: str="Hig
 	finally:
 	    cursor.close()
 
-def log_event_if_passes(db_path: Path, record_id: int, event_name: str, current_value: float, compare_type: str):
+def log_event_if_passes(cursor: sqlite3.cursor, record_id: int, event_name: str, current_value: float, compare_type: str):
 	# event_name:
 	# - Highest Temperature
 	# - Lowest Temperature
@@ -102,7 +105,6 @@ def log_event_if_passes(db_path: Path, record_id: int, event_name: str, current_
 	# - Lowest Pressure
 	# - Highest Humidity
 	# - Lowest Humidity
-	cursor=sqlite3.connect(str(db_path))
 	# got a bit long this one, so made it into a paragraph
 	query="""SELECT SensorRecords.Temperature, SensorRecords.Pressure, SensorRecords.Humidity FROM SensorEvents INNER JOIN EventTypes ON SensorEvents.TypeID = EventTypes.TypeID INNER JOIN SensorRecords ON SensorEvents.RecordID = SensorRecords.RecordID WHERE EventTypes.Name=? ORDER BY SensorRecords.DateTime DESC LIMIT 1"""
 	cursor.execute(query,(event_name,))
