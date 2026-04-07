@@ -58,15 +58,14 @@ def group_by_dyn(data: List[Dict], group_seconds: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
         try:
-            dt=datetime.datetime.fromisoformat(entry["DateTime"]).replace('Z','')
+            dt_str=entry["DateTime"].replace('Z','')
+            dt=datetime.datetime.fromisoformat(dt_str)
 
             ts=int(dt.timestamp())
 
             snapped_seconds=(ts//group_seconds) * group_seconds
 
-            key=datetime.datetime.fromtimestamp(min_key)
-
-
+            key=datetime.datetime.fromtimestamp(snapped_seconds)
 
             min_key = key.strftime('%Y-%m-%dT%H:%M:%S')
             if min_key not in amount_buckets:
