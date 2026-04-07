@@ -16,6 +16,7 @@ import aiofiles
 from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.staticfiles import StaticFiles
 import lps22hb
 import shtc3
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
