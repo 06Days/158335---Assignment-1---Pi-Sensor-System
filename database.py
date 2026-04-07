@@ -79,15 +79,14 @@ def fetch_history(db_path: Path, limit: int=100)->List[Dict]:
 def fetch_latest_event_by_name(db_path: Path, limit: int=1, event_name: str="Highest Temperature")->List[Dict]:
 	cursor=sqlite3.connect(str(db_path))
     cursor.row_factory = sqlite3.Row
-    try:
+	try:
         cur=cursor.cursor()
-		cur.execute("""SELECT EventTypes.Name, EventTypes.Description, SensorRecords.*  FROM SensorEvents INNER JOIN EventTypes ON SensorEvents.TypeID=EventTypes.TypeID INNER JOIN SensorRecords ON SensorEvents.RecordID=SensorRecords.RecordID WHERE EventTypes.name=? ORDER BY DateTime DESC LIMIT ?
-			""", (event_name,limit),
-        )
+		cur.execute("""SELECT EventTypes.Name, EventTypes.Description, SensorRecords.*  FROM SensorEvents INNER JOIN EventTypes ON SensorEvents.TypeID=EventTypes.TypeID INNER JOIN SensorRecords ON SensorEvents.RecordID=SensorRecords.RecordID WHERE EventTypes.name=? ORDER BY DateTime DESC LIMIT ?""", (event_name,limit),)
         rows=cur.fetchall()
         return [dict(row) for row in rows]
     finally:
         cursor.close()
+
 
 
 def build_database(db_path: Path, schema: str) -> None:
