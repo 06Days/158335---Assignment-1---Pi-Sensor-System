@@ -53,10 +53,10 @@ COMMIT;
 """
 
 def log_sensor_data(db_path: Path, record: dict) -> None:
-    try:
-        with sqlite3.connect(str(db_path)) as cursor:
+	try:
+		with sqlite3.connect(str(db_path)) as cursor:
 			cursor.execute("""INSERT INTO SensorRecords (DateTime,Temperature,Pressure,Humidity) VALUES(?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
-            cursor.commit();
+			cursor.commit();
 			record_id=cursor.lastrowid
 			log_event_if_passes(DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
 			log_event_if_passes(DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
@@ -64,13 +64,9 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
 			log_event_if_passes(DB_FILE, record_id, "Lowest Pressure", record["Pressure"],"Lowest")
 			log_event_if_passes(DB_FILE, record_id, "Highest Humidity", record["Humidity"],"Highest")
 			log_event_if_passes(DB_FILE, record_id, "Lowest Humidity", record["Humidity"],"Lowest")
+	except Exception as exception:
+		logging.error(f"failed to add sensor data to database {exception}")
 
-            # Implementation for 'events - highest / lowest records etc goes here'
-
-
-
-    except Exception as exception:
-        logging.error(f"failed to add sensor data to database {exception}")
 
 def fetch_history(db_path: Path, limit: int=100)->List[Dict]:
     cursor=sqlite3.connect(str(db_path))
