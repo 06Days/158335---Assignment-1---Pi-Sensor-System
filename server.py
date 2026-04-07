@@ -25,6 +25,8 @@ DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 
 app = FastAPI()
+#for JS
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 logger = logging.getLogger(__name__)
 
