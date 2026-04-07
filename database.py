@@ -59,7 +59,7 @@ def log_sensor_data(db_path: Path, record: dict) -> None:
 			cursor=connection.cursor()
 			cursor.execute("""INSERT INTO SensorRecords (DateTime,Temperature,Pressure,Humidity) VALUES(?,?,?,?)""",(record["DateTime"],record["Temperature"],record["Pressure"],record["Humidity"]),)
 
-			record_id=cursor.lastrowid()
+			record_id=cursor.lastrowid
 			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Temperature", record["Temperature"],"Highest")
 			log_event_if_passes(cursor, DB_FILE, record_id, "Lowest Temperature", record["Temperature"],"Lowest")
 			log_event_if_passes(cursor, DB_FILE, record_id, "Highest Pressure", record["Pressure"],"Highest")
