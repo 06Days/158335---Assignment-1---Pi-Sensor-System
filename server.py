@@ -54,14 +54,21 @@ def get_records(limit: int = 100):
         detail = "Could not fetch event history"
     ) from exception
 
-def group_by_minute(data: List[Dict], bucket_size_mins: int) -> List[Dict]:
+def group_by_dyn(data: List[Dict], group_seconds: int) -> List[Dict]:
     amount_buckets = {}
     for entry in data:
         try:
-            dt_str=(entry["DateTime"].replace('Z',''))
-            dt=datetime.datetime.fromisoformat(dt_str)
-            rounded_min=(dt.minute//bucket_size_mins) * bucket_size_mins
-            min_key = dt.replace(minute=rounded_min, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:00')
+            dt=datetime.datetime.fromisoformat(entry["DateTime"]).replace('Z',''))
+
+            ts=int(dt.timestamp())
+
+            snapped_seconds=(ts//group_seconds) * group_seconds
+
+            key=datetime.datetime.fromtimestamp(min_key)
+
+
+
+            min_key = key.strftime('%Y-%m-%dT%H:%M:%S')
             if min_key not in amount_buckets:
                 amount_buckets[min_key] = {"Temperature": [], "Pressure": [], "Humidity": []}
 
@@ -144,21 +151,16 @@ async def read_index():
 async def get_sensor_history(minutes: int = 10):
 
     try:
-        limit=minutes*8
+        limit=minutes*60
+
         rows = fetch_history(app.state.db_path, limit=limit)
-        if len(rows)<15:
-            return JSONResponse(group_by_minute(rows, 1))
-        if minutes==1:
+
+        total_seconds=len(rows)
+        if total_seconds<=60:
             return JSONResponse(rows)
-        elif minutes==10:
-            rows = group_by_minute(rows,1)
-        elif minutes==60:
-            group = 10 if len(rows) > 60 else 1
-            rows= group_by_minute(rows,group)
-        elif minutes >= 1440:
-            group = 60 if len(rows) > 360 else 10
-            rows = group_by_minute(rows, group)
-        # Else nothing required as rows = rows
+        grouping=max(1,total_seconds//60)
+        rows=group_by_dyn(rows,grouping)
+
         return JSONResponse(rows)
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
