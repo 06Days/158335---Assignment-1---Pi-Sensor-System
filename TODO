@@ -1,3 +1,13 @@
 TODO:
-  - Integrate humidity reading, will need to use a different sensor on the hat
+  [X] Integrate humidity reading, will need to use a different sensor on the hat: DONE
   - Integrate 'events'
+
+How I'm going to go about events:
+  Create a database system for retrieving the event, by name.
+  Allow the server to serve events via string, and then allow the index.html to retriev events via string, so it is frontend driven.
+  I can then re-use this functionalty for a 'records' section, retrieving the EventType, which can then also make the system show a description for each event.
+
+SQL query for events likely:
+
+SELECT * FROM SensorEvents INNER JOIN EventTypes ON SensorEvents.TypeID=EventTypes.TypeID INNER JOIN SensorRecords ON SensorEvents.RecordID=SensorRecords.RecordID
+: will give me access to SensorEvents.TypeID, SensorEvents.EventID, SensorEvents.RecordID

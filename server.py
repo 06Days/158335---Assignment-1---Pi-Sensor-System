@@ -1,5 +1,5 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
-# VERSION 1
+# VERSION 2
 # LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
 import asyncio
 import sqlite3
