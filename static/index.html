@@ -6,6 +6,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
   </head>
   <body class="bg-light">
+    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#settingsModal">Configuration</button>
    <div class="container py-4">
 
      <div class="mb-4 d-flex justify-content-center">
@@ -48,6 +49,41 @@
      </div>
    </div>
 
+   <!-- settings modal -->
+   <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+     <div class="modal-dialog">
+       <div class="modal-content">
+         <h5 class="modal-title" id="settingsModalLabel">Sensor System Settings</h5>
+         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="settingsForm">
+          <div class="mb-3">
+            <label for="refreshInterval" class="form-label">Interface refresh interval</label>
+            <input type="number" class="form-control" id="refreshInterval" value="1" min="1">
+          </div>
+          <div class="mb-3">
+            <label for="TempAlertThreshold" class="form-label">Temperature Alert Threshold</label>
+            <input type="number" class="form-control" id="TempAlertThreshold" value="1" min="1">
+          </div>
+          <div class="mb-3">
+            <label for="PressureAlertThreshold" class="form-label">Pressure Alert Threshold</label>
+            <input type="number" class="form-control" id="PressureAlertThreshold" value="1" min="1">
+          </div>
+          <div class="mb-3">
+            <label for="HumidityAlertThreshold" class="form-label">Humidity Alert Threshold</label>
+            <input type="number" class="form-control" id="HumidityAlertThreshold" value="1" min="1">
+          </div>
+
+        </form>
+      </div>
+
+
+       </div>
+
+     </div>
+
+   </div>
  </body>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
