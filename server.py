@@ -4,8 +4,9 @@
 
 # Move to /tmp before importing sensors so lgpio creates pipes
 # then move back to /app for fastAPI
-
+# OS and sys are required for this
 import os
+import sys
 APP_PATH = os.path.abspath(os.path.dirname(__file__))
 
 if APP_PATH not in sys.path:
@@ -19,7 +20,7 @@ try:
     import shtc3
     import lgpio
 finally:
-    
+
     os.chdir(original_dir)
 
 # normal boot up starts from here
