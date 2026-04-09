@@ -16,11 +16,12 @@ Please note that building and running this will take time. About 5 minutes at fi
 
 Docker:
 
+sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 docker build -t smart_rpi_monitor . && \
 docker run -d \
   --name smart_monitor \
-  --group-add 997 \
-  --group-add 998 \
+  --group-add $(getent group i2c | cut -d: -f3) \
+  --group-add $(getent group gpio | cut -d: -f3) \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
@@ -32,11 +33,12 @@ docker run -d \
 
 Podman:
 
+sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 podman build -t smart_rpi_monitor . && \
 podman run -d \
   --name smart_monitor \
-  --group-add 997 \
-  --group-add 998 \
+  --group-add $(getent group i2c | cut -d: -f3) \
+  --group-add $(getent group gpio | cut -d: -f3) \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
