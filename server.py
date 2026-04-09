@@ -1,11 +1,24 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
 # VERSION 5
 # LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
+
+# Move to /tmp before importing sensors so lgpio creates pipes
+# then move back to /app for fastAPI
+
+import os
+original_dir = os.getcwd()
+os.chdir('/tmp')
+import lps22hb
+import shtc3
+import lgpio
+os.chdir(original_dir)
+
+# normal boot up starts from here
 import asyncio
 import sqlite3
 import logging
 from typing import List, Dict, AsyncGenerator
-import os
+
 import json
 import secrets
 import httpx
@@ -17,12 +30,15 @@ from fastapi import FastAPI, Depends, Form, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
-import lps22hb
-import shtc3
+
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
 from starlette.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-import lgpio
+
+
+
+
+
 
 
 # Alerts:

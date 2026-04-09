@@ -38,6 +38,9 @@ ENV PATH=/home/piuser/.local/bin:$PATH
 RUN mkdir -p /app/data && chown -R piuser:piuser /app/data
 COPY --chown=piuser:piuser . .
 
+RUN mkdir -p /var/local/run && chown -R piuser:piuser /var/local/run
+RUN chmod 1777 /tmp
+
 USER piuser
 EXPOSE 8000
 
