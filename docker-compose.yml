@@ -1,0 +1,17 @@
+version: '1.0'
+
+services:
+  smart_monitor:
+    build: .
+    container_name: smart_env_system
+    privileged: true #
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    devices:
+      - "/dev/i2c-1:/dev/i2c-1"
+      - "/dev/gpiomem:/dev/gpiomem"
+      - "/dev/gpiochip4:/dev/gpiochip4"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
