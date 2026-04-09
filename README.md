@@ -12,11 +12,15 @@ liblgpio-dev must be manually built.
 
 To run this project, use the following docker one-liner
 
+Please note that building and running this will take time. About 5 minutes at first run, the running shouldn't be as long from there!
+
 Docker:
 
 docker build -t smart_rpi_monitor . && \
 docker run -d \
   --name smart_monitor \
+  --group-add 997 \
+  --group-add 998 \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
@@ -24,17 +28,18 @@ docker run -d \
   -v $(pwd)/data:/app/data \
   -p 8000:8000 \
   smart_rpi_monitor
-  
+
 Podman:
 
 podman build -t smart_rpi_monitor . && \
 podman run -d \
   --name smart_monitor \
+  --group-add 997 \
+  --group-add 998 \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
   --device /dev/gpiochip4:/dev/gpiochip4 \
-  -v $(pwd)/data:/app/data:Z \
+  -v $(pwd)/data:/app/data \
   -p 8000:8000 \
-  --replace \
   smart_rpi_monitor

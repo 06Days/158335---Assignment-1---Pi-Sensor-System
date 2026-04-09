@@ -35,6 +35,7 @@ WORKDIR /app
 RUN groupadd -r piuser && useradd -r -g piuser piuser
 
 
+
 COPY --from=builder /usr/local/lib /usr/local/lib
 COPY --from=builder /usr/local/include /usr/local/include
 
@@ -53,6 +54,7 @@ COPY . .
 
 RUN mkdir -p /app/data && chown -R piuser:piuser /app/data
 
+RUN chown -R piuser:piuser /app
 
 USER piuser
 
