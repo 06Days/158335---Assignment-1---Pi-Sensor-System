@@ -1,6 +1,46 @@
 // Default timeframe filter
 let currentLimit = 60;
 
+// the all-important save settings function, designed to work with the backend to overwrite the defaults
+async function saveSettings() {
+    // get the slider values
+    const temperatureValues = tempSlider.noUiSlider.get();
+    const humidityValues = humidSlider.noUiSlider.get();
+    const pressureValues = pressSlider.noUiSlider.get();
+
+    // constructing the new object to be written to the file
+    const newConfig = {
+        "temp_low_thres": parseFloat(temperatureValues[0]),
+        "temp_high_thres": parseFloat(temperatureValues[1]),
+        "humid_low_thres": parseFloat(humidityValues[0]),
+        "humid_high_thres": parseFloat(humidityValues[1]),
+        "press_low_thres": parseFloat(pressureValues[0]),
+        "press_high_thres": parseFloat(pressureValues[1]),
+        "temp_spike_amount": parseFloat(document.getElementById('temp_spike_amount').value),
+        "humid_spike_amount": parseFloat(document.getElementById('humid_spike_amount').value),
+        "press_spike_amount": parseFloat(document.getElementById('press_spike_amount').value)
+    };
+    // attempt to parse the JSON into a string python can use
+    try {
+        const response = await fetch('/sensor/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newConfig)
+        });
+
+        if (response.ok) {
+            showDismissibleAlert("save-success", "<strong>Success!</strong> New settings applied", "success");
+
+            bootstrap.Modal.getInstance(document.getElementById('settingsModal')).hide();
+        } else {
+            throw new Error("Something went wrong when trying to save settings");
+        }
+    } catch (error) {
+        console.error("Save failed:", error);
+        showDismissibleAlert("save-error", "<strong>Error:</strong> Could not save settings.", "danger");
+    }
+}
+
 document.getElementById('timeRangeGroup').addEventListener('change', (click)=>{
   if (click.target.name ==='timeRange'){
     currentLimit = click.target.value;
@@ -404,7 +444,7 @@ async function initSliders() {
         pressSlider.noUiSlider.on('update', (values) => {
             document.getElementById('pressRangeText').innerText = `${Math.round(values[0])} - ${Math.round(values[1])} hPa`;
         });
-        
+
         // spike amounts
         document.getElementById('temp_spike_amount').value = config.temp_spike_amount;
         document.getElementById('humid_spike_amount').value = config.humid_spike_amount;
