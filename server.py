@@ -114,6 +114,33 @@ async def get_sensor_history(limit: int = 100):
         logger.exception(f"Failed to fetch history: {exception}")
         raise HTTPException(status_code=500, detail="Failed to retrieve history") from exception
 
+# check for a spike in temperature change.
+async def analyze_data_trends(history: List[Dict], threshold_val: float):
+    if len(history) <10:
+        return{"trend":"stable","spike":False,"prediction":None}
+    current_temperature=history[0]
+    # assuming that the measurements are being done every second
+    # It shouldn't matter, a Δtemperature that is dramatic over any period of time should be considered worthy of an alert
+    past_temperature=history[5]
+    delta_temperature=current_temperature-past_temperature
+    is_spike = abs(delta_temperature) > 1.5 #PLACEHOLDER
+
+    # My first linear regression experience.
+    # x= index(time),y=Temperature
+    number=min(len(history),30)
+    y_values=[h["Temperature"] for h in history[:n]]
+    x_values=list(range(n))
+
+    average_x=sum(x_values)/number
+    average_y=sum(y_values)/number
+
+    # oh no, scary maths
+
+    numerator = sum((x-average_x)*(y-average_y) for x,y in zip(x_values, y_values))
+    denominator = sum((x-average_x)**2 for x in x_values)
+
+
+
 @app.get("/sensor", response_class=JSONResponse)
 async def get_sensor_data():
     try:
