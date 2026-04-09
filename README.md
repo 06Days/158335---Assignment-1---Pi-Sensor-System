@@ -21,13 +21,11 @@ sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 docker build -t smart_rpi_monitor . && \
 docker run -d \
   --name smart_monitor \
-  --group-add $(getent group i2c | cut -d: -f3) \
-  --group-add $(getent group gpio | cut -d: -f3) \
+  --cap-add=SYS_RAWIO \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
   --device /dev/gpiochip4:/dev/gpiochip4 \
-  --replace \
   -v $(pwd)/data:/app/data \
   -p 8000:8000 \
   smart_rpi_monitor
