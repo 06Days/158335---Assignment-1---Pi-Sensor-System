@@ -387,7 +387,7 @@ async function initSliders() {
             step: 1
         });
         pressureSlider = document.getElementById('pressSlider');
-        noUiSlider.create(humidSlider, {
+        noUiSlider.create(pressSlider, {
             start: [config.press_low_thres, config.press_high_thres],
             connect: true,
             range: { 'min': 260, 'max': 1260 },
