@@ -47,10 +47,12 @@ def init_gpio(pin=17):
     logging.error("Could not open any gpiochip.Speaker not working")
     return None, pin
 
-app.state.gpio_handle, ALERT_PIN = init_gpio(17)
+
 
 # fastapi instance
 app = FastAPI()
+
+app.state.gpio_handle, ALERT_PIN = init_gpio(17)
 
 # security measure, limit what the server can interact with
 app.add_middleware(
