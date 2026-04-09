@@ -254,7 +254,7 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     current_value=history[0][metric]
     # assuming that the measurements are being done every second
     # It shouldn't matter, a Δvalue that is dramatic over any period of time should be considered worthy of an alert
-    past_value=history[delta_index]
+    past_value=history[delta_index][metric]
 
     config=get_config();
 
@@ -266,8 +266,8 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     # My first linear regression experience.
     # x= index(time),y=Temperature
     number=min(len(history),30)
-    y_values=[h[metric] for h in history[:n]]
-    x_values=list(range(n))
+    y_values=[h[metric] for h in history[:number]]
+    x_values=list(range(number))
 
     average_x=sum(x_values)/number
     average_y=sum(y_values)/number
