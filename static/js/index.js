@@ -317,21 +317,33 @@ async function updateScales(){
 async function updateAnalysis(){
   const result = await fetch('/sensor/analysis');
   const analysis = await result.json();
+  const spikeBadge = document.getElementById('spikeBadge');
 
-  const tempElement = document.getElementById('temperature');
   if(analysis.spike){
-    tempElement.classList.add('text-danger', 'fw-bold');
+    spikeBadge.classList.remove('d-none');
   } else {
-    tempElement.classList.remove('text-danger', 'fw-bold');
+    spikeBadge.classList.add('d-none');
   }
 
-    let statusText = `Trend: ${analysis.trend}`;
-    if (analysis.prediction) {
-        statusText += ` | Temperature could hit 35°C in ${analysis.prediction} mins`;
-    }
+  const trendBadge=document.getElementById("trendBadge");
 
-    document.getElementById('analysis-text').textContent = statusText;
+  if(analysis.trend==='Rising'){
+    trendBadge.className="badge bg-warning text-dark";
+  } else if (analysis.trend==='Falling'){
+    trendBadge.className="badge bg-info text-dark";
+  }else {
+    trendBadge.className="badge bg-secondary";
+  }
 
+  const predictionText=document.getElementById('predictionText');
+
+  if (analysis.prediction){
+    predictionText.innerHTML=`May reach 35 degree threshold in <b>${analysis.prediction} mins</b>`;
+    predictionText.classList.add('text-primary');
+  } else {
+    predictionText.textContent = "No threshold breach predicted.";
+    predictionText.classList.remove('text-primary');
+  }
 
 }
 
@@ -340,4 +352,5 @@ setTimeout(() => {
   loadHistory();
   setInterval(loadHistory, 1000);
 }, 100);
+  setInterval(updateAnalysisUI, 2000);
 };
