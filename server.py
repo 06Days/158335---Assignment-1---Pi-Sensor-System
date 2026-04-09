@@ -1,5 +1,5 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
-# VERSION 3
+# VERSION 4
 # LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
 import asyncio
 import sqlite3
@@ -22,9 +22,12 @@ import shtc3
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
 from starlette.responses import StreamingResponse
 
+# Alerts:
+# config -> backend_sensor_loop -> index.js -> index.html
+
 # for statistics predictions - a crude way of decreasing the overhead for the database
 temp_sensor_cache=[]
-
+CONFIG_FILE = "system.conf"
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 
@@ -39,7 +42,38 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+# Our function for returning the configuration. This includes the thresholds.
+def get_config():
+    default_config= {
+        "temp_low_thres":0.0, "temp_high_thres":40.0,
+        "humid_low_thres":10.0, "humid_high_thres":90.0,
+        "press_low_thres":970.0, "press_high_thres":1030.0,
+        "temp_spike_amount":1.5,"humid_spike_amount":5.0,"press_spike_amount":2.0
+    }
+    # if it doesn't exist, we write the defaults in!
 
+    if not os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, 'w') as file:
+            json.dump(default_config, file)
+        return default_config
+
+    with open(CONFIG_FILE, 'r') as file:
+        return json.load(f)
+# save the new config, as adjusted in the settings menu
+@app.post("/sensor/settings")
+async def save_settings(request: Request):
+    try:
+        new_settings = await request.json()
+        with open(CONFIG_FILE, 'w') as f:
+            json.dump(new_settings, f)
+        return {"status": "success"}
+    except Exception as exception:
+        logging.error(f"Could not save new settings: {exception}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exception
+
+
+
+# helper function for using the database
 def _ensure_database() -> None:
     try:
         build_database(DB_FILE, DB_SCHEME)
@@ -114,16 +148,37 @@ async def backend_sensor_loop() -> None:
     await asyncio.sleep(1)
     while True:
         try:
+            # grab the config file (hopefully is the system.conf file)
+            config=get_config();
+
             data = _sync_read_sensor()
             log_sensor_data(DB_FILE, data)
-            logging.info("---")
 
-
+            alerts=[]
+            # lets cast these to make that if statement tidier
+            Temperature=data["Temperature"]
+            Pressure=data["Pressure"]
+            Humidity=data["Humidity"]
+            # The backend from the alert
+            if Temperature<config["temp_low_thres"] or Temperature>config["temp_high_thres"]:
+                alerts.append(f"Temperature outside of range {config['temp_low_thres']}-{config['temp_high_thres']}")
+            if Temperature<config["humid_low_thres"] or Temperature>config["humid_high_thres"]:
+                alerts.append(f"Humidity outside of range {config['humid_low_thres']}-{config['temp_high_thres']}")
+            if Temperature<config["press_low_thres"] or Temperature>config["press_high_thres"]:
+                alerts.append(f"Air pressure outside of range {config['press_low_thres']}-{config['press_high_thres']}")
+            app.state.current_alerts = alerts
+            # temporary sensor cache gets stored here, and then popped one by one
             temp_sensor_cache.insert(0,data)
             if len(temp_sensor_cache)>60:
                 temp_sensor_cache.pop()
-            # will change for configurable threshold
+
+            app.state.current_analysis = {
+                "temp": analyze_data_trends(temp_sensor_cache, "Temperature", 5, config["temp_high_thres"]),
+                "humid": analyze_data_trends(temp_sensor_cache, "Humidity", 5, config["humid_high_thres"]),
+                "press": analyze_data_trends(temp_sensor_cache, "Pressure", 5, config["press_high_thres"])
+            }
             analysis=analyze_data_trends(temp_sensor_cache, threshold_val=35.0)
+            history: List[Dict], metric: str, delta_index: int, threshold_val: float
 
         except Exception as exception:
             logging.error(f"Could not log sensor data {exception}")
@@ -190,20 +245,26 @@ async def get_analysis():
     return JSONResponse(getattr(app.state, "current_analysis", {}))
 
 # check for a spike in temperature change, perform linear regression in order to make 'time to' predictions
-async def analyze_data_trends(history: List[Dict], threshold_val: float):
-    if len(history) <10:
+async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_val: float):
+    if len(history) < 10:
         return{"trend":"stable","spike":False,"prediction":None}
-    current_temperature=history[0]
+
+    current_value=history[0][key]
     # assuming that the measurements are being done every second
-    # It shouldn't matter, a Δtemperature that is dramatic over any period of time should be considered worthy of an alert
-    past_temperature=history[5]
-    delta_temperature=current_temperature-past_temperature
-    is_spike = abs(delta_temperature) > 1.5 #PLACEHOLDER - Need to add to settings
+    # It shouldn't matter, a Δvalue that is dramatic over any period of time should be considered worthy of an alert
+    past_value=history[delta_index]
+
+    config=get_config();
+
+    delta_value=current_value-past_value
+    "temp_spike_amount":1.5,"humid_spike_amount":5.0,"press_spike_amount":2.0
+    spike_threshold = config["temp_spike_amount"] if key == "Temperature" else config["humid_spike_amount"] if key == "Humidity" else config["press_spike_amount"]
+    is_spike = abs(delta_value) > spike_threshold
 
     # My first linear regression experience.
     # x= index(time),y=Temperature
     number=min(len(history),30)
-    y_values=[h["Temperature"] for h in history[:n]]
+    y_values=[h[key] for h in history[:n]]
     x_values=list(range(n))
 
     average_x=sum(x_values)/number
@@ -218,13 +279,13 @@ async def analyze_data_trends(history: List[Dict], threshold_val: float):
     # invert it because history[0] is actually the newest
     slope=-slope
     trend = "Stable"
-    if slope > 0.05: trend = "Rising"
-    elif slope < -0.05: trend = "Falling"
+    if slope > 0.02: trend = "Rising"
+    elif slope < -0.02: trend = "Falling"
 
     prediction = None
 
-    if trend == "Rising" and current_temperature < threshold_val:
-        seconds_to_hit = (threshold_val - current_temp) / slope
+    if trend == "Rising" and current_value < threshold_val and slope > 0:
+        seconds_to_hit = (threshold_val - current_value) / slope
         prediction = round(seconds_to_hit / 60, 1) # Minutes until
 
     return{"trend": trend, "spike": is_spike,"prediction": prediction}

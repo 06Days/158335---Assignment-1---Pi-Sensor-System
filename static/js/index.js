@@ -315,36 +315,44 @@ async function updateScales(){
 
 
 async function updateAnalysis(){
-  const result = await fetch('/sensor/analysis');
-  const analysis = await result.json();
-  const spikeBadge = document.getElementById('spikeBadge');
+  try {
+    const result = await fetch('/sensor/analysis');
+    const analysis = await result.json();
+    const metrics= ['temp', 'humid', 'press'];
 
-  if(analysis.spike){
-    spikeBadge.classList.remove('d-none');
-  } else {
-    spikeBadge.classList.add('d-none');
+    metrics.forEach(metric =>{
+      const data= analysis[metric]
+      const badge= document.getElementById(`${metric}Trend`);
+      const predictionBadge = document.getElementById(`${m}Prediction`);
+
+      badge.textContent = data.trend;
+      if (data.trend === 'Rising') badge.className = "badge bg-warning text-dark";
+      else if (data.trend === 'Falling') badge.className = "badge bg-info text-dark";
+      else badge.className = "badge bg-secondary";
+
+      if (data.prediction && data.prediction < 60) {
+                const msg = `<strong>Prediction:</strong> ${m.toUpperCase()} breach in ~${data.prediction} mins.`;
+                showDismissibleAlert(`pred-${m}`, msg, 'warning');
+      }
+      if (data.spike) {
+                const msg = `<strong>Caution:</strong> Sudden ${m.toUpperCase()} spike detected!`;
+                showDismissibleAlert(`spike-${m}`, msg, 'danger');
+      }
+    });
+  }catch (exception){
+    console.error("Could not fetch analysis", exception);
   }
+}
 
-  const trendBadge=document.getElementById("trendBadge");
-
-  if(analysis.trend==='Rising'){
-    trendBadge.className="badge bg-warning text-dark";
-  } else if (analysis.trend==='Falling'){
-    trendBadge.className="badge bg-info text-dark";
-  }else {
-    trendBadge.className="badge bg-secondary";
-  }
-
-  const predictionText=document.getElementById('predictionText');
-
-  if (analysis.prediction){
-    predictionText.innerHTML=`May reach 35 degree threshold in <b>${analysis.prediction} mins</b>`;
-    predictionText.classList.add('text-primary');
-  } else {
-    predictionText.textContent = "No threshold breach predicted.";
-    predictionText.classList.remove('text-primary');
-  }
-
+function showDismissibleAlert(id, message, type) {
+    if (document.getElementById(id)) return; // If there already is an alert of that nature, dont get rid of it
+    const container = document.getElementById('alertContainer');
+    const html = `
+        <div class="alert alert-${type} alert-dismissible fade show shadow-sm" role="alert" id="${id}">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+    container.insertAdjacentHTML('beforeend', html);
 }
 
 window.onload = () => {
