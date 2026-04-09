@@ -251,7 +251,7 @@ async def get_analysis():
     return JSONResponse(getattr(app.state, "current_analysis", {}))
 
 # check for a spike in temperature change, perform linear regression in order to make 'time to' predictions
-async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_val: float):
+async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_low: float,threshold_high: float):
     if len(history) < 10:
         return{"trend":"stable","spike":False,"prediction":None}
 
