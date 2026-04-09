@@ -15,7 +15,7 @@ To run this project, use the following docker one-liner
 Please note that building and running this will take time. About 5 minutes at first run, the running shouldn't be as long from there!
 
 Docker:
-
+mkdir -p data && \
 sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 docker build -t smart_rpi_monitor . && \
 docker run -d \
@@ -32,7 +32,7 @@ docker run -d \
   smart_rpi_monitor
 
 Podman:
-
+mkdir -p data && \
 sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 podman build -t smart_rpi_monitor . && \
 podman run -d \
