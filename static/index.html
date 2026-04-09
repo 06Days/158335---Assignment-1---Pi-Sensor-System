@@ -105,21 +105,24 @@
                             <label class="form-label">Update Interval (seconds)</label>
                             <input type="number" class="form-control" id="refreshInterval" value="1" min="1">
                         </div>
-                        <hr>
-                        <label class="form-label">Temperature Range (°C)</label>
-                        <div id="tempSlider" class="mx-2 mb-2"></div>
-                        <small class="text-muted">Range: <span id="tempRangeText">0 - 40</span></small>
 
+                        <hr>
                         <div class="mb-4">
-                            <label class="form-label">Humidity Range (%)</label>
+                            <label class="form-label">Safe Temperature Range (°C)</label>
+                            <div id="tempSlider" class="mx-2 mb-2"></div>
+                            <small class="text-muted">Range: <span id="tempRangeText">0 - 40</span></small>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Safe Humidity Range (%)</label>
                             <div id="humidSlider" class="mx-2 mb-2"></div>
                             <small class="text-muted">Range: <span id="humidRangeText">10 - 90</span></small>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">Pressure Range (hPa)</label>
+                            <label class="form-label">Safe Pressure Range (hPa)</label>
                             <div id="pressSlider" class="mx-2 mb-2"></div>
                             <small class="text-muted">Range: <span id="pressRangeText">10 - 90</span></small>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Temp Spike Sensitivity (°C change)</label>
                             <input type="number" class="form-control" id="temp_spike_amount" step="0.1">

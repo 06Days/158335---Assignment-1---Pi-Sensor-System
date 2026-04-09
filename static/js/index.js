@@ -338,11 +338,11 @@ async function updateAnalysis(){
       else badge.className = "badge bg-secondary";
 
       if (data.prediction && data.prediction < 60) {
-                const msg = `<strong>Prediction:</strong> ${m.toUpperCase()} breach in ~${data.prediction} mins.`;
+                const msg = `<strong>Prediction:</strong> ${metric.toUpperCase()} breach in ~${data.prediction} mins.`;
                 showDismissibleAlert(`pred-${metric}`, msg, 'warning');
       }
       if (data.spike) {
-                const msg = `<strong>Caution:</strong> Sudden ${m.toUpperCase()} spike detected!`;
+                const msg = `<strong>Caution:</strong> Sudden ${metric.toUpperCase()} spike detected!`;
                 showDismissibleAlert(`spike-${metric}`, msg, 'danger');
       }
     });
