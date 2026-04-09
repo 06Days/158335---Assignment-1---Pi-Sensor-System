@@ -368,5 +368,5 @@ async def log_latest_sensor_data():
         raise HTTPException(status_code=500,detail="failed to store sensor data") from exception
 # GPIO cleanup, when quitting the app- so you dont have a silly buzzer blasting the entire time
 @app.on_event("shutdown")
-    def shutdown_event():
-        GPIO.cleanup()
+def shutdown_event():
+    GPIO.cleanup()
