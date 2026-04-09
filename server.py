@@ -211,7 +211,7 @@ async def backend_sensor_loop() -> None:
             if alerts:
                 GPIO.output(ALERT_PIN, GPIO.HIGH)
             else:
-                GPIO.output(ALERT_PIN, GPIO.LOW)  
+                GPIO.output(ALERT_PIN, GPIO.LOW)
 
             # temporary sensor cache gets stored here, and then popped one by one
             temp_sensor_cache.insert(0,data)
@@ -366,3 +366,7 @@ async def log_latest_sensor_data():
     except Exception as exception:
         logging.error(f"Failed to log sensor data {exception}")
         raise HTTPException(status_code=500,detail="failed to store sensor data") from exception
+# GPIO cleanup, when quitting the app- so you dont have a silly buzzer blasting the entire time
+@app.on_event("shutdown")
+    def shutdown_event():
+        GPIO.cleanup()
