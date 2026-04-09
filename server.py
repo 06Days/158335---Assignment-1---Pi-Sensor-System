@@ -34,8 +34,21 @@ CONFIG_FILE = "system.conf"
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 ALERT_PIN = 17 # speaker pin
-h = lgpio.gpiochip_open(0)
-lgpio.gpio_claim_output(h, ALERT_PIN)
+
+def init_gpio(pin=17):
+    for chip_num in [0, 4, 1]:
+        try:
+            h = lgpio.gpiochip_open(chip_num)
+            lgpio.gpio_claim_output(h, pin)
+            logging.info(f"Opened GPIO {chip_num}")
+            return h, pin
+        except Exception:
+            continue
+    logging.error("Could not open any gpiochip.Speaker not working")
+    return None, pin
+
+app.state.gpio_handle, ALERT_PIN = init_gpio(17)
+
 # fastapi instance
 app = FastAPI()
 
