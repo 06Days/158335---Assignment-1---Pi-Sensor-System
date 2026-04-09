@@ -25,6 +25,7 @@ docker run -d \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
   --device /dev/gpiochip4:/dev/gpiochip4 \
+  --replace \
   -v $(pwd)/data:/app/data \
   -p 8000:8000 \
   smart_rpi_monitor
@@ -40,6 +41,7 @@ podman run -d \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
   --device /dev/gpiochip4:/dev/gpiochip4 \
+  --replace \
   -v $(pwd)/data:/app/data \
   -p 8000:8000 \
   smart_rpi_monitor
