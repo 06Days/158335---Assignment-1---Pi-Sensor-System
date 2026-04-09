@@ -3,7 +3,7 @@ version: '3.8'  #
 services:
   smart_monitor:
     build: .
-    container_name: smart_env_system
+    container_name: smart_rpi_monitor
     privileged: true
     user: "root"
     volumes:
