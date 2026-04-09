@@ -37,8 +37,9 @@ sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
 podman build -t smart_rpi_monitor . && \
 podman run -d \
   --name smart_monitor \
-  --group-add $(getent group i2c | cut -d: -f3) \
-  --group-add $(getent group gpio | cut -d: -f3) \
+  --group-add keep-groups \
+  --security-opt label=disable \
+  --cap-add=SYS_RAWIO \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \

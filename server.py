@@ -6,12 +6,21 @@
 # then move back to /app for fastAPI
 
 import os
+APP_PATH = os.path.abspath(os.path.dirname(__file__))
+
+if APP_PATH not in sys.path:
+    sys.path.append(APP_PATH)
+
 original_dir = os.getcwd()
 os.chdir('/tmp')
-import lps22hb
-import shtc3
-import lgpio
-os.chdir(original_dir)
+
+try:
+    import lps22hb
+    import shtc3
+    import lgpio
+finally:
+    
+    os.chdir(original_dir)
 
 # normal boot up starts from here
 import asyncio
