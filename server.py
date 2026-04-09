@@ -1,5 +1,5 @@
 # Server.py - Backend server for Assignment 1 - Toby Cammock-Elliott - 24003641
-# VERSION 4
+# VERSION 5
 # LPS22HB is a temperature/air pressure sensor, SHTC3 is a temperature/humidity sensor.
 import asyncio
 import sqlite3
@@ -21,6 +21,9 @@ import lps22hb
 import shtc3
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
 from starlette.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+import RPi.GPIO as GPIO
+
 
 # Alerts:
 # config -> backend_sensor_loop -> index.js -> index.html
@@ -30,8 +33,20 @@ temp_sensor_cache=[]
 CONFIG_FILE = "system.conf"
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
-
+ALERT_PIN = 17 # speaker pin
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(ALERT_PIN, GPIO.OUT)
+# fastapi instance
 app = FastAPI()
+
+# security measure, limit what the server can interact with
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 #for JS
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
@@ -69,6 +84,26 @@ async def get_settings():
 async def save_settings(request: Request):
     try:
         new_settings = await request.json()
+        # Security measure, check that all keys have been met for new settings
+        required_keys=[
+            "temp_low_thres", "temp_high_thres",
+            "humid_low_thres", "humid_high_thres",
+            "press_low_thres", "press_high_thres",
+            "temp_spike_amount", "humid_spike_amount","press_spike_amount"
+        ]
+        # Security measure, check that all keys are valid.
+        for key in required_keys:
+            if key not in new_settings:
+                raise HTTPException(status_code=400, detail=f"Missing {key}")
+            if not isinstance(new_settings[key], (int, float)):
+                    raise HTTPException(status_code=400, detail=f"{key} must be a number")
+        if new_settings["temp_high_thres"] > 150 or new_settings["temp_low_thres"] < -50:
+             raise HTTPException(status_code=400, detail="Temperature out of sensor capability")
+        if new_settings["humid_high_thres"] > 100 or new_settings["humid_low_thres"] < 0:
+             raise HTTPException(status_code=400, detail="Humidity out of sensor capability")
+        if new_settings["press_high_thres"] > 1260 or new_settings["press_low_thres"] < 260:
+             raise HTTPException(status_code=400, detail="Air Pressure out of sensor capability")
+
         with open(CONFIG_FILE, 'w') as f:
             json.dump(new_settings, f)
         return {"status": "success"}
@@ -172,6 +207,12 @@ async def backend_sensor_loop() -> None:
             if Pressure<config["press_low_thres"] or Pressure>config["press_high_thres"]:
                 alerts.append(f"Air pressure outside of range {config['press_low_thres']}-{config['press_high_thres']}")
             app.state.current_alerts = alerts
+
+            if alerts:
+                GPIO.output(ALERT_PIN, GPIO.HIGH)
+            else:
+                GPIO.output(ALERT_PIN, GPIO.LOW)  
+
             # temporary sensor cache gets stored here, and then popped one by one
             temp_sensor_cache.insert(0,data)
             if len(temp_sensor_cache)>60:
@@ -288,6 +329,12 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     slope=-slope
     trend = "Stable"
 
+    trend = "Stable"
+    if slope > 0.01:
+        trend = "Rising"
+    elif slope < -0.01:
+        trend = "Falling"
+
     prediction = None
 
     if trend == "Rising" and current_value < threshold_high and slope > 0:
@@ -318,4 +365,4 @@ async def log_latest_sensor_data():
         return {"detail":"Logged sensor data"}
     except Exception as exception:
         logging.error(f"Failed to log sensor data {exception}")
-        raise HTTPException(status_code=500,detail="failed to store sensor data") from exc
+        raise HTTPException(status_code=500,detail="failed to store sensor data") from exception
