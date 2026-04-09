@@ -179,7 +179,7 @@ async def backend_sensor_loop() -> None:
                 "humid": await analyze_data_trend(history=temp_sensor_cache, metric="Humidity", delta_index=5, threshold_val=config["humid_high_thres"]),
                 "press": await analyze_data_trend(history=temp_sensor_cache, metric="Pressure", delta_index=5, threshold_val=config["press_high_thres"])
             }
-            
+
 
 
         except Exception as exception:
@@ -231,13 +231,13 @@ async def get_sensor_history(minutes: int = 10):
 
         rows = fetch_history(app.state.db_path, limit=limit)
 
-        total_seconds=len(rows)
-        if total_seconds<=60:
-            return JSONResponse(rows)
-        grouping=max(1,total_seconds//60)
-        rows=group_by_dyn(rows,grouping)
 
-        return JSONResponse(rows)
+        if len(rows)>120:
+            grouping= max(1,len(rows)//60)
+            rows=group_by_dyn(rows,grouping)
+
+
+        return JSONResponse(sorted(rows,key=lambda: x: x["DateTime"]))
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
         raise HTTPException(status_code=500, detail="Failed to retrieve history") from exception

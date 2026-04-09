@@ -221,7 +221,7 @@ async function loadHistory(){
 
     if(data && data.length>0){
 
-
+      const latest_data=data[data.length-1];
       document.getElementById('temperature').textContent = `${data[0].Temperature.toFixed(2)} ℃`;
       document.getElementById('humidity').textContent = `${data[0].Humidity.toFixed(2)} %`;
       document.getElementById('pressure').textContent = `${data[0].Pressure.toFixed(2)} hPa`;
@@ -242,8 +242,14 @@ async function loadHistory(){
         y: row.Pressure
       })).filter(p =>!isNaN(p.x.getTime()));
 
-      const timeUnit = currentLimit > 1000 ?'hour':'minute';
-      [tempchart, humidchart, pressurechart].forEach(chart =>{chart.options.scales.x.time.unit=timeUnit});
+      const now= new Date();
+      const past = new Date(now.getTime-currentLimit*60000);
+
+      [tempchart, humidchart, pressurechart].forEach(chart =>{
+        chart.options.scales.x.min=past;
+        chart.options.scales.x.max=now;
+        chart.options.scales.x.time.unit = currentLimit > 120 ? 'hour' : 'minute';
+      });
       tempchart.data.datasets[0].data = tempChartData.reverse();
       humidchart.data.datasets[0].data = humidChartData.reverse();
       pressurechart.data.datasets[0].data = pressureChartData.reverse();
@@ -292,10 +298,10 @@ async function updateScales(){
   if (highHumid && lowHumid) {
       humidchart.options.scales.y.min = Math.floor(lowHumid.Humidity);
       humidchart.options.scales.y.max = Math.ceil(highHumid.Humidity);
-      humidchart.options.plugins.annotation.annotations.maxLine.yMin = highHumid.Temperature;
-      humidchart.options.plugins.annotation.annotations.maxLine.yMax = highHumid.Temperature;
-      humidchart.options.plugins.annotation.annotations.minLine.yMin = lowHumid.Temperature;
-      humidchart.options.plugins.annotation.annotations.minLine.yMax = lowHumid.Temperature;
+      humidchart.options.plugins.annotation.annotations.maxLine.yMin = highHumid.Humidity;
+      humidchart.options.plugins.annotation.annotations.maxLine.yMax = highHumid.Humidity;
+      humidchart.options.plugins.annotation.annotations.minLine.yMin = lowHumid.Humidity;
+      humidchart.options.plugins.annotation.annotations.minLine.yMax = lowHumid.Humidity;
       humidchart.update('none');
 
   }
@@ -305,10 +311,10 @@ async function updateScales(){
       pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
 
 
-      pressurechart.options.plugins.annotation.annotations.maxLine.yMin = highPress.Temperature;
-      pressurechart.options.plugins.annotation.annotations.maxLine.yMax = highPress.Temperature;
-      pressurechart.options.plugins.annotation.annotations.minLine.yMin = lowPress.Temperature;
-      pressurechart.options.plugins.annotation.annotations.minLine.yMax = lowPress.Temperature;
+      pressurechart.options.plugins.annotation.annotations.maxLine.yMin = highPress.Pressure;
+      pressurechart.options.plugins.annotation.annotations.maxLine.yMax = highPress.Pressure;
+      pressurechart.options.plugins.annotation.annotations.minLine.yMin = lowPress.Pressure;
+      pressurechart.options.plugins.annotation.annotations.minLine.yMax = lowPress.Pressure;
       pressurechart.update('none');
   }
 }
@@ -323,7 +329,7 @@ async function updateAnalysis(){
     metrics.forEach(metric =>{
       const data= analysis[metric]
       const badge= document.getElementById(`${metric}Trend`);
-      const predictionBadge = document.getElementById(`${m}Prediction`);
+      const predictionBadge = document.getElementById(`${metric}Prediction`);
 
       badge.textContent = data.trend;
       if (data.trend === 'Rising') badge.className = "badge bg-warning text-dark";
@@ -332,11 +338,11 @@ async function updateAnalysis(){
 
       if (data.prediction && data.prediction < 60) {
                 const msg = `<strong>Prediction:</strong> ${m.toUpperCase()} breach in ~${data.prediction} mins.`;
-                showDismissibleAlert(`pred-${m}`, msg, 'warning');
+                showDismissibleAlert(`pred-${metric}`, msg, 'warning');
       }
       if (data.spike) {
                 const msg = `<strong>Caution:</strong> Sudden ${m.toUpperCase()} spike detected!`;
-                showDismissibleAlert(`spike-${m}`, msg, 'danger');
+                showDismissibleAlert(`spike-${metric}`, msg, 'danger');
       }
     });
   }catch (exception){
@@ -360,5 +366,5 @@ setTimeout(() => {
   loadHistory();
   setInterval(loadHistory, 1000);
 }, 100);
-  setInterval(updateAnalysisUI, 2000);
+  setInterval(updateAnalysis, 2000);
 };
