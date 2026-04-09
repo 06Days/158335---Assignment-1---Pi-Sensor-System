@@ -59,6 +59,11 @@ def get_config():
 
     with open(CONFIG_FILE, 'r') as file:
         return json.load(file)
+# Handshake for the frontend for getting settings
+@app.get("/sensor/settings")
+async def get_settings():
+    return JSONResponse(get_config())
+
 # save the new config, as adjusted in the settings menu
 @app.post("/sensor/settings")
 async def save_settings(request: Request):

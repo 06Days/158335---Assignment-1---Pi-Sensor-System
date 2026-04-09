@@ -7,6 +7,7 @@ document.getElementById('timeRangeGroup').addEventListener('change', (click)=>{
     loadHistory();
   }
 });
+
 // Canvas code
 const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
 const humidcanvas=document.getElementById('humidityChart').getContext('2d');
@@ -363,17 +364,49 @@ function showDismissibleAlert(id, message, type) {
 
 // settings sliders
 // Initialize Sliders
+let tempSlider, humidSlider, pressSlider;
 
-const tempSlider = document.getElementById('tempSlider');
-noUiSlider.create(tempSlider, {
-    start: [0, 40],
-    connect: true,
-    range: { 'min': -10, 'max': 60 },
-    step: 0.5
-});
+async function initSliders() {
+    try {
+        // "handshake" the backend for the settings that should be saved in system.conf
+        const response = await fetch('/sensor/settings');
+        const config = await response.json();
+        // load from the server
+        tempSlider = document.getElementById('tempSlider');
+        noUiSlider.create(tempSlider, {
+            start: [config.temp_low_thres, config.temp_high_thres], // Loaded from server!
+            connect: true,
+            range: { 'min': -30, 'max': 100 },
+            step: 0.5
+        });
+        humidSlider = document.getElementById('humidSlider');
+        noUiSlider.create(humidSlider, {
+            start: [config.humid_low_thres, config.humid_high_thres],
+            connect: true,
+            range: { 'min': 0, 'max': 100 },
+            step: 1
+        });
+        pressureSlider = document.getElementById('pressSlider');
+        noUiSlider.create(humidSlider, {
+            start: [config.press_low_thres, config.press_high_thres],
+            connect: true,
+            range: { 'min': 260, 'max': 1260 },
+            step: 1
+        });
+
+        // spike amounts
+        document.getElementById('temp_spike_amount').value = config.temp_spike_amount;
+        document.getElementById('humid_spike_amount').value = config.humid_spike_amount;
+        document.getElementById('press_spike_amount').value = config.press_spike_amount;
+
+    } catch (error) {
+        console.error("Failed to load slider config:", error);
+    }
+}
 
 
 window.onload = () => {
+  initSliders();
 setTimeout(() => {
   loadHistory();
   setInterval(loadHistory, 1000);
