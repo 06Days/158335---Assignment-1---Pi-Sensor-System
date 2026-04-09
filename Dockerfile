@@ -13,6 +13,13 @@ RUN apt-get update && apt-get install -y \
     i2c-tools \
     && rm -rf /var/lib/apt/lists/*
 
+RUN wget https://github.com/joan2937/lg/archive/master.zip \
+    && unzip master.zip \
+    && cd lg-master \
+    && make install \
+    && cd .. \
+    && rm -rf lg-master master.zip
+
 RUN pip install --no-cache-dir virtualenv
 
 COPY requirements.txt .
