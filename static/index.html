@@ -120,48 +120,6 @@
     </div>
 
   </body>
-</html>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="text/javascript">
-  const tempcanvas=document.getElementById('temperatureChart').getContext('2d');
-  const tempchart = new Chart(tempcanvas, {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: [{
-        label: 'Temperature (°C)',
-        borderColor:'black',
-        backgroundColor: 'rgba(255,0,0,0.1)',
-        data: [],
-        }
-      ]
-    },
-    options: {
-      animation: false,
-      scales: {
-        x: {
-          type: 'time',
-          time: {unit: 'second'},
-          title: {display: true, text: 'Time'}
-        },
-        y: {beginAtZero: true}
-      }
-    }
-  });
-  // Keeps the chart within the last minute (temporary)
-  function pruneChart(){
-    const now = Date.now();
-    chart.data.labels = chart.data.labels.filter(t=> now - t <=60000);
-    chart.data.datasets.forEach(ds => {
-      ds.data = ds.data.filter((_,i)=> now - chart.data.labels[i] <= 60000);
-    });
-    chart.update();
-  }
-  // a feed from the backend to update the chart as data is brought!
-  const eventSource = new EventSource('sensor/stream');
-  eventSource.onmessage = function (event){
-    const message = JSON.parse(e.event);
-    const timestamp = new Date(msg.timestamp * 1000);
 
 
 <!-- external import of index.js -->
