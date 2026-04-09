@@ -1,17 +1,20 @@
-version: '1.0'
+version: '3.8'  #
 
 services:
   smart_monitor:
     build: .
     container_name: smart_env_system
-    privileged: true #
+    privileged: true
+    user: "root"
     volumes:
       - .:/app
-      - ./data:/app/data
+      - ./data:/app/data:Z
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
       - "/dev/gpiomem:/dev/gpiomem"
-      - "/dev/gpiochip4:/dev/gpiochip4"
+      - "/dev/gpiochip0:/dev/gpiochip0"
     ports:
       - "8000:8000"
     restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
