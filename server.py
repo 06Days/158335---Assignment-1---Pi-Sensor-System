@@ -58,7 +58,7 @@ def get_config():
         return default_config
 
     with open(CONFIG_FILE, 'r') as file:
-        return json.load(f)
+        return json.load(file)
 # save the new config, as adjusted in the settings menu
 @app.post("/sensor/settings")
 async def save_settings(request: Request):
@@ -178,7 +178,7 @@ async def backend_sensor_loop() -> None:
                 "press": analyze_data_trends(temp_sensor_cache, "Pressure", 5, config["press_high_thres"])
             }
             analysis=analyze_data_trends(temp_sensor_cache, threshold_val=35.0)
-            history: List[Dict], metric: str, delta_index: int, threshold_val: float
+
 
         except Exception as exception:
             logging.error(f"Could not log sensor data {exception}")
@@ -249,7 +249,7 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     if len(history) < 10:
         return{"trend":"stable","spike":False,"prediction":None}
 
-    current_value=history[0][key]
+    current_value=history[0][metric]
     # assuming that the measurements are being done every second
     # It shouldn't matter, a Δvalue that is dramatic over any period of time should be considered worthy of an alert
     past_value=history[delta_index]
@@ -258,13 +258,13 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
 
     delta_value=current_value-past_value
     "temp_spike_amount":1.5,"humid_spike_amount":5.0,"press_spike_amount":2.0
-    spike_threshold = config["temp_spike_amount"] if key == "Temperature" else config["humid_spike_amount"] if key == "Humidity" else config["press_spike_amount"]
+    spike_threshold = config["temp_spike_amount"] if metric == "Temperature" else config["humid_spike_amount"] if metric == "Humidity" else config["press_spike_amount"]
     is_spike = abs(delta_value) > spike_threshold
 
     # My first linear regression experience.
     # x= index(time),y=Temperature
     number=min(len(history),30)
-    y_values=[h[key] for h in history[:n]]
+    y_values=[h[metric] for h in history[:n]]
     x_values=list(range(n))
 
     average_x=sum(x_values)/number
