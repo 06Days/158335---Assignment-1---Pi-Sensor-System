@@ -167,9 +167,9 @@ async def backend_sensor_loop() -> None:
             # The backend from the alert
             if Temperature<config["temp_low_thres"] or Temperature>config["temp_high_thres"]:
                 alerts.append(f"Temperature outside of range {config['temp_low_thres']}-{config['temp_high_thres']}")
-            if Temperature<config["humid_low_thres"] or Temperature>config["humid_high_thres"]:
-                alerts.append(f"Humidity outside of range {config['humid_low_thres']}-{config['temp_high_thres']}")
-            if Temperature<config["press_low_thres"] or Temperature>config["press_high_thres"]:
+            if Humidity<config["humid_low_thres"] or Humidity>config["humid_high_thres"]:
+                alerts.append(f"Humidity outside of range {config['humid_low_thres']}-{config['humid_high_thres']}")
+            if Pressure<config["press_low_thres"] or Pressure>config["press_high_thres"]:
                 alerts.append(f"Air pressure outside of range {config['press_low_thres']}-{config['press_high_thres']}")
             app.state.current_alerts = alerts
             # temporary sensor cache gets stored here, and then popped one by one
@@ -177,12 +177,11 @@ async def backend_sensor_loop() -> None:
             if len(temp_sensor_cache)>60:
                 temp_sensor_cache.pop()
 
-            app.state.current_analysis = {
 
-                # async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_val: float):
-                "temp": await analyze_data_trend(history=temp_sensor_cache, metric="Temperature", delta_index=5, threshold_val=config["temp_high_thres"]),
-                "humid": await analyze_data_trend(history=temp_sensor_cache, metric="Humidity", delta_index=5, threshold_val=config["humid_high_thres"]),
-                "press": await analyze_data_trend(history=temp_sensor_cache, metric="Pressure", delta_index=5, threshold_val=config["press_high_thres"])
+            app.state.current_analysis = {
+                "temp": await analyze_data_trend(temp_sensor_cache, "Temperature", 5, config["temp_low_thres"], config["temp_high_thres"]),
+                "humid": await analyze_data_trend(temp_sensor_cache, "Humidity", 5, config["humid_low_thres"], config["humid_high_thres"]),
+                "press": await analyze_data_trend(temp_sensor_cache, "Pressure", 5, config["press_low_thres"], config["press_high_thres"])
             }
 
 
@@ -257,6 +256,8 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
         return{"trend":"stable","spike":False,"prediction":None}
 
     current_value=history[0][metric]
+
+    out_of_range = current_value < threshold_low or current_value > threshold_high
     # assuming that the measurements are being done every second
     # It shouldn't matter, a Δvalue that is dramatic over any period of time should be considered worthy of an alert
     past_value=history[delta_index][metric]
@@ -286,16 +287,18 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     # invert it because history[0] is actually the newest
     slope=-slope
     trend = "Stable"
-    if slope > 0.02: trend = "Rising"
-    elif slope < -0.02: trend = "Falling"
 
     prediction = None
 
-    if trend == "Rising" and current_value < threshold_val and slope > 0:
-        seconds_to_hit = (threshold_val - current_value) / slope
-        prediction = round(seconds_to_hit / 60, 1) # Minutes until
+    if trend == "Rising" and current_value < threshold_high and slope > 0:
+        seconds_to_hit = (threshold_high - current_value) / slope
+        prediction = round(seconds_to_hit / 60, 1)
+    elif trend == "Falling" and current_value > threshold_low and slope < 0:
+        seconds_to_hit = (current_value - threshold_low) / abs(slope)
+        prediction = round(seconds_to_hit / 60, 1)
 
-    return{"trend": trend, "spike": is_spike,"prediction": prediction}
+
+    return{"trend": trend, "spike": is_spike,"prediction": prediction,"out_of_range": out_of_range}
 
 
 

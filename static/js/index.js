@@ -371,11 +371,17 @@ async function updateAnalysis(){
       const data= analysis[metric]
       const badge= document.getElementById(`${metric}Trend`);
       const predictionBadge = document.getElementById(`${metric}Prediction`);
+      const currentVal = parseFloat(document.getElementById(metric === 'temp' ? 'temperature' : metric === 'humid' ? 'humidity' : 'pressure').textContent);
 
       badge.textContent = data.trend;
       if (data.trend === 'Rising') badge.className = "badge bg-warning text-dark";
       else if (data.trend === 'Falling') badge.className = "badge bg-info text-dark";
       else badge.className = "badge bg-secondary";
+
+      if (data.out_of_range) {
+                const msg = `<strong>WARNING:</strong> ${metric.toUpperCase()} is outside of safe limits!`;
+                showDismissibleAlert(`range-${metric}`, msg, 'danger');
+      }
 
       if (data.prediction && data.prediction < 60) {
                 const msg = `<strong>Prediction:</strong> ${metric.toUpperCase()} breach in ~${data.prediction} mins.`;
