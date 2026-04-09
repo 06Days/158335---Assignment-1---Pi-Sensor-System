@@ -257,7 +257,7 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     config=get_config();
 
     delta_value=current_value-past_value
-    "temp_spike_amount":1.5,"humid_spike_amount":5.0,"press_spike_amount":2.0
+    
     spike_threshold = config["temp_spike_amount"] if metric == "Temperature" else config["humid_spike_amount"] if metric == "Humidity" else config["press_spike_amount"]
     is_spike = abs(delta_value) > spike_threshold
 
