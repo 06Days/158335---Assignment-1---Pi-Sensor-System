@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     liblgpio-dev \
     build-essential \
     i2c-tools \
+    wget \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/joan2937/lg/archive/master.zip \
