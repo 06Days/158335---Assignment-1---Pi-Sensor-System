@@ -224,9 +224,9 @@ async def backend_sensor_loop() -> None:
             app.state.current_alerts = alerts
 
             if alerts:
-                lgpio.gpio_write(h, 17, 1)
+                lgpio.gpio_write(app.state.gpio_handle, 17, 1)
             else:
-                lgpio.gpio_write(h, 17, 0)
+                lgpio.gpio_write(app.state.gpio_handle, 17, 0)
 
             # temporary sensor cache gets stored here, and then popped one by one
             temp_sensor_cache.insert(0,data)
@@ -304,7 +304,15 @@ async def get_sensor_history(minutes: int = 10):
 # analysis endpoint for getting the current predictions
 @app.get("/sensor/analysis")
 async def get_analysis():
-    return JSONResponse(getattr(app.state, "current_analysis", {}))
+    # a fallback
+    default_response={
+
+    "temp": {"trend": "Stable", "spike": False, "prediction": None, "out_of_range": False},
+    "humid": {"trend": "Stable", "spike": False, "prediction": None, "out_of_range": False},
+    "press": {"trend": "Stable", "spike": False, "prediction": None, "out_of_range": False}
+
+    }
+    return JSONResponse(getattr(app.state, "current_analysis", default_response))
 
 # check for a spike in temperature change, perform linear regression in order to make 'time to' predictions
 async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_low: float,threshold_high: float):
