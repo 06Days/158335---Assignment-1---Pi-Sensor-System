@@ -361,6 +361,18 @@ function showDismissibleAlert(id, message, type) {
     container.insertAdjacentHTML('beforeend', html);
 }
 
+// settings sliders
+// Initialize Sliders
+
+const tempSlider = document.getElementById('tempSlider');
+noUiSlider.create(tempSlider, {
+    start: [0, 40],
+    connect: true,
+    range: { 'min': -10, 'max': 60 },
+    step: 0.5
+});
+
+
 window.onload = () => {
 setTimeout(() => {
   loadHistory();
