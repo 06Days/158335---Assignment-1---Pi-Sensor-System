@@ -318,7 +318,23 @@ async function updateAnalysis(){
   const result = await fetch('/sensor/analysis');
   const analysis = await result.json();
 
+  const tempElement = document.getElementById('temperature');
+  if(analysis.spike){
+    tempElement.classList.add('text-danger', 'fw-bold');
+  } else {
+    tempElement.classList.remove('text-danger', 'fw-bold');
+  }
+
+    let statusText = `Trend: ${analysis.trend}`;
+    if (analysis.prediction) {
+        statusText += ` | Temperature could hit 35°C in ${analysis.prediction} mins`;
+    }
+
+    document.getElementById('analysis-text').textContent = statusText;
+
+
 }
+
 window.onload = () => {
 setTimeout(() => {
   loadHistory();

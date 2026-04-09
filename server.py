@@ -116,7 +116,6 @@ async def backend_sensor_loop() -> None:
         try:
             data = _sync_read_sensor()
             log_sensor_data(DB_FILE, data)
-
             logging.info("---")
 
 

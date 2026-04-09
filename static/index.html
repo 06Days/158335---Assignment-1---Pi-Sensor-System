@@ -8,6 +8,13 @@
 
   </head>
   <body class="bg-light">
+    <div class="d-flex align-items-center gap-2 mb-2">
+    <span id="trendBadge" class="badge bg-secondary">Loading temperature trend</span>
+    <span id="spikeBadge" class="badge bg-danger d-none">Spike detected!</span>
+    </div>
+    <small id="predictionText" class="text-muted d-block mb-3">
+        Calculating prediction...
+    </small>
     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#settingsModal">Configuration</button>
    <div class="container py-4">
 
