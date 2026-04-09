@@ -237,7 +237,7 @@ async def get_sensor_history(minutes: int = 10):
             rows=group_by_dyn(rows,grouping)
 
 
-        return JSONResponse(sorted(rows,key=lambda: x: x["DateTime"]))
+        return JSONResponse(sorted(rows,key=lambda x: x["DateTime"]))
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
         raise HTTPException(status_code=500, detail="Failed to retrieve history") from exception
