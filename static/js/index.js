@@ -364,7 +364,7 @@ function showDismissibleAlert(id, message, type) {
 
 // settings sliders
 // Initialize Sliders
-let tempSlider, humidSlider, pressSlider;
+let tempSlider, humidSlider, pressureSlider;
 
 async function initSliders() {
     try {
