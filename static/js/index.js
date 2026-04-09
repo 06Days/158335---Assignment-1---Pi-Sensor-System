@@ -1,6 +1,6 @@
 // Default timeframe filter
 let currentLimit = 60;
-
+let historyInterval;
 // the all-important save settings function, designed to work with the backend to overwrite the defaults
 async function saveSettings() {
     // get the slider values
@@ -43,8 +43,13 @@ async function saveSettings() {
 
 document.getElementById('timeRangeGroup').addEventListener('change', (click)=>{
   if (click.target.name ==='timeRange'){
-    currentLimit = click.target.value;
+
+    currentLimit = parseInt(click.target.value);
+    // stop calling this to prevent race condition
+    clearInterval(historyInterval);
     loadHistory();
+    historyInterval = setInterval(loadHistory, 1000);
+
   }
 });
 
@@ -284,7 +289,7 @@ async function loadHistory(){
       })).filter(p =>!isNaN(p.x.getTime()));
 
       const now= new Date();
-      const past = new Date(now.getTime-currentLimit*60000);
+      const past = new Date(now.getTime()-currentLimit*60000);
 
       [tempchart, humidchart, pressurechart].forEach(chart =>{
         chart.options.scales.x.min=past;
@@ -468,7 +473,7 @@ window.onload = () => {
   initSliders();
 setTimeout(() => {
   loadHistory();
-  setInterval(loadHistory, 1000);
+  historyInterval= setInterval(loadHistory, 1000);
 }, 100);
   setInterval(updateAnalysis, 2000);
 };
