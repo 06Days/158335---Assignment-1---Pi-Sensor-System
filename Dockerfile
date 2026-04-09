@@ -8,7 +8,6 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     swig \
     python3-dev \
-    liblgpio-dev \
     build-essential \
     i2c-tools \
     wget \
