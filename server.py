@@ -22,6 +22,9 @@ import shtc3
 from database import build_database, DB_SCHEME, log_sensor_data, fetch_history, fetch_latest_event_by_name
 from starlette.responses import StreamingResponse
 
+# for statistics predictions - a crude way of decreasing the overhead for the database
+temp_sensor_cache=[]
+
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 
@@ -113,7 +116,16 @@ async def backend_sensor_loop() -> None:
         try:
             data = _sync_read_sensor()
             log_sensor_data(DB_FILE, data)
+
             logging.info("---")
+
+
+            temp_sensor_cache.insert(0,data)
+            if len(temp_sensor_cache)>60:
+                temp_sensor_cache.pop()
+            # will change for configurable threshold
+            analysis=analyze_data_trends(temp_sensor_cache, threshold_val=35.0)
+
         except Exception as exception:
             logging.error(f"Could not log sensor data {exception}")
         # 10 Second - placeholder, will become a setting
@@ -173,6 +185,52 @@ async def get_sensor_history(minutes: int = 10):
     except Exception as exception:
         logger.exception(f"Failed to fetch history: {exception}")
         raise HTTPException(status_code=500, detail="Failed to retrieve history") from exception
+# analysis endpoint for getting the current predictions
+@app.get("/sensor/analysis")
+async def get_analysis():
+    return JSONResponse(getattr(app.state, "current_analysis", {}))
+
+# check for a spike in temperature change, perform linear regression in order to make 'time to' predictions
+async def analyze_data_trends(history: List[Dict], threshold_val: float):
+    if len(history) <10:
+        return{"trend":"stable","spike":False,"prediction":None}
+    current_temperature=history[0]
+    # assuming that the measurements are being done every second
+    # It shouldn't matter, a Δtemperature that is dramatic over any period of time should be considered worthy of an alert
+    past_temperature=history[5]
+    delta_temperature=current_temperature-past_temperature
+    is_spike = abs(delta_temperature) > 1.5 #PLACEHOLDER - Need to add to settings
+
+    # My first linear regression experience.
+    # x= index(time),y=Temperature
+    number=min(len(history),30)
+    y_values=[h["Temperature"] for h in history[:n]]
+    x_values=list(range(n))
+
+    average_x=sum(x_values)/number
+    average_y=sum(y_values)/number
+
+    # oh no, scary maths
+
+    numerator = sum((x-average_x)*(y-average_y) for x,y in zip(x_values, y_values))
+    denominator = sum((x-average_x)**2 for x in x_values)
+    # If not able to be created, made 0
+    slope=numerator/denominator if denominator !=0 else 0
+    # invert it because history[0] is actually the newest
+    slope=-slope
+    trend = "Stable"
+    if slope > 0.05: trend = "Rising"
+    elif slope < -0.05: trend = "Falling"
+
+    prediction = None
+
+    if trend == "Rising" and current_temperature < threshold_val:
+        seconds_to_hit = (threshold_val - current_temp) / slope
+        prediction = round(seconds_to_hit / 60, 1) # Minutes until
+
+    return{"trend": trend, "spike": is_spike,"prediction": prediction}
+
+
 
 @app.get("/sensor", response_class=JSONResponse)
 async def get_sensor_data():

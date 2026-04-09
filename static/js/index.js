@@ -303,13 +303,21 @@ async function updateScales(){
   if (highPress && lowPress) {
       pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure);
       pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
-      pressurechart.options.scales.y.max = Math.ceil(highHumid.Humidity);
+
+
       pressurechart.options.plugins.annotation.annotations.maxLine.yMin = highPress.Temperature;
       pressurechart.options.plugins.annotation.annotations.maxLine.yMax = highPress.Temperature;
       pressurechart.options.plugins.annotation.annotations.minLine.yMin = lowPress.Temperature;
       pressurechart.options.plugins.annotation.annotations.minLine.yMax = lowPress.Temperature;
       pressurechart.update('none');
   }
+}
+
+
+async function updateAnalysis(){
+  const result = await fetch('/sensor/analysis');
+  const analysis = await result.json();
+
 }
 window.onload = () => {
 setTimeout(() => {
