@@ -175,11 +175,11 @@ async def backend_sensor_loop() -> None:
             app.state.current_analysis = {
 
                 # async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int, threshold_val: float):
-                "temp": analyze_data_trend(history=temp_sensor_cache, metric="Temperature", delta_index=5, threshold_val=config["temp_high_thres"]),
-                "humid": analyze_data_trend(history=temp_sensor_cache, metric="Humidity", delta_index=5, threshold_val=config["humid_high_thres"]),
-                "press": analyze_data_trend(history=temp_sensor_cache, metric="Pressure", delta_index=5, threshold_val=config["press_high_thres"])
+                "temp": await analyze_data_trend(history=temp_sensor_cache, metric="Temperature", delta_index=5, threshold_val=config["temp_high_thres"]),
+                "humid": await analyze_data_trend(history=temp_sensor_cache, metric="Humidity", delta_index=5, threshold_val=config["humid_high_thres"]),
+                "press": await analyze_data_trend(history=temp_sensor_cache, metric="Pressure", delta_index=5, threshold_val=config["press_high_thres"])
             }
-            analysis=analyze_data_trend(temp_sensor_cache, threshold_val=35.0)
+            
 
 
         except Exception as exception:
