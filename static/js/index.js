@@ -394,6 +394,17 @@ async function initSliders() {
             step: 1
         });
 
+        // live updates of the small-tagged range text
+        tempSlider.noUiSlider.on('update', (values) => {
+            document.getElementById('tempRangeText').innerText = `${values[0]}°C - ${values[1]}°C`;
+        });
+        humidSlider.noUiSlider.on('update', (values) => {
+            document.getElementById('humidRangeText').innerText = `${values[0]}% - ${values[1]}%`;
+        });
+        pressSlider.noUiSlider.on('update', (values) => {
+            document.getElementById('pressRangeText').innerText = `${Math.round(values[0])} - ${Math.round(values[1])} hPa`;
+        });
+        
         // spike amounts
         document.getElementById('temp_spike_amount').value = config.temp_spike_amount;
         document.getElementById('humid_spike_amount').value = config.humid_spike_amount;
@@ -404,16 +415,7 @@ async function initSliders() {
     }
 }
 
-// live updates of the small-tagged range text
-tempSlider.noUiSlider.on('update', (values) => {
-    document.getElementById('tempRangeText').innerText = `${values[0]}°C - ${values[1]}°C`;
-});
-humidSlider.noUiSlider.on('update', (values) => {
-    document.getElementById('humidRangeText').innerText = `${values[0]}% - ${values[1]}%`;
-});
-pressSlider.noUiSlider.on('update', (values) => {
-    document.getElementById('pressRangeText').innerText = `${Math.round(values[0])} - ${Math.round(values[1])} hPa`;
-});
+
 
 
 window.onload = () => {
