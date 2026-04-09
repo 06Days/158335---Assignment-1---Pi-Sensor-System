@@ -1,4 +1,5 @@
 version: '3.8'  #
+version: '1.0'
 
 services:
   smart_monitor:
@@ -6,15 +7,16 @@ services:
     container_name: smart_rpi_monitor
     privileged: true
     user: "root"
+
     volumes:
       - .:/app
-      - ./data:/app/data:Z
+      - ./data:/app/data
     devices:
       - "/dev/i2c-1:/dev/i2c-1"
       - "/dev/gpiomem:/dev/gpiomem"
       - "/dev/gpiochip0:/dev/gpiochip0"
+      - "/dev/gpiochip4:/dev/gpiochip4"
     ports:
       - "8000:8000"
     restart: unless-stopped
     environment:
-      - PYTHONUNBUFFERED=1
