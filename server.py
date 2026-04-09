@@ -56,7 +56,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # for statistics predictions - a crude way of decreasing the overhead for the database
 temp_sensor_cache=[]
-CONFIG_FILE = "system.conf"
+CONFIG_FILE = os.path.join(DB_DIRECTORY, "system.conf")
 DB_DIRECTORY = Path(__file__).parent / "data"
 DB_FILE = DB_DIRECTORY / "db.db"
 ALERT_PIN = 17 # speaker pin
