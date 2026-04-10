@@ -39,6 +39,7 @@ sudo docker run -d \
   -p 8000:8000 \
   smart_rpi_monitor
 
+
 Podman:
 git clone https://github.com/06Days/158335---Assignment-1---Pi-Sensor-System sems && cd sems && \
 mkdir -p data && \
