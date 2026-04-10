@@ -262,11 +262,12 @@ const pressurechart = new Chart(pressurecanvas, {
 
 async function loadHistory(){
   try{
+    // fetch the sensor history
     const result = await fetch(`/sensor/history?minutes=${currentLimit}`);
     const data = await result.json();
 
     if(data && data.length>0){
-
+      // flip the data
       const latest_data=data[data.length-1];
       document.getElementById('temperature').textContent = `${data[0].Temperature.toFixed(2)} ℃`;
       document.getElementById('humidity').textContent = `${data[0].Humidity.toFixed(2)} %`;
@@ -355,8 +356,6 @@ async function updateScales(){
   if (highPress && lowPress) {
       pressurechart.options.scales.y.min = Math.floor(lowPress.Pressure);
       pressurechart.options.scales.y.max = Math.ceil(highPress.Pressure);
-
-
       pressurechart.options.plugins.annotation.annotations.maxLine.yMin = highPress.Pressure;
       pressurechart.options.plugins.annotation.annotations.maxLine.yMax = highPress.Pressure;
       pressurechart.options.plugins.annotation.annotations.minLine.yMin = lowPress.Pressure;
@@ -364,7 +363,6 @@ async function updateScales(){
       pressurechart.update('none');
   }
 }
-
 
 async function updateAnalysis(){
   try {

@@ -15,18 +15,27 @@ To run this project, use the following docker one-liner
 Please note that building and running this will take time. About 5 minutes at first run, the running shouldn't be as long from there!
 
 Docker:
+
+first run:
+
+sudo usermod -aG docker $USER && newgrp docker
+
+then:
+
 git clone https://github.com/06Days/158335---Assignment-1---Pi-Sensor-System sems && cd sems && \
 mkdir -p data && \
-sudo chown -R 1000:1000 ./data && chmod -R 775 ./data && \
-docker build -t smart_rpi_monitor . && \
-docker run -d \
+sudo chown -R 1000:1000 data && \
+sudo docker build -t smart_rpi_monitor . && \
+sudo docker rm -f smart_monitor || true && \
+sudo docker run -d \
   --name smart_monitor \
+  --group-add $(getent group i2c | cut -d: -f3) \
   --cap-add=SYS_RAWIO \
   --device /dev/i2c-1:/dev/i2c-1 \
   --device /dev/gpiomem:/dev/gpiomem \
   --device /dev/gpiochip0:/dev/gpiochip0 \
   --device /dev/gpiochip4:/dev/gpiochip4 \
-  -v $(pwd)/data:/app/data \
+  -v $(pwd)/data:/app/data:rw \
   -p 8000:8000 \
   smart_rpi_monitor
 

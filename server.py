@@ -369,8 +369,6 @@ async def analyze_data_trend(history: List[Dict], metric: str, delta_index: int,
     average_x=sum(x_values)/number
     average_y=sum(y_values)/number
 
-    # oh no, scary maths
-
     numerator = sum((x-average_x)*(y-average_y) for x,y in zip(x_values, y_values))
     denominator = sum((x-average_x)**2 for x in x_values)
     # If not able to be created, made 0
